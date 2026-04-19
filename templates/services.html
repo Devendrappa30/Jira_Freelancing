@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Services — DevInfotech Pvt. Ltd.{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ──────────────────────────────────────────────────────── -->
+<section class="page-hero">
+  <div class="hero-bg-grid"></div>
+  <div class="container page-hero-inner">
+    <div class="page-hero-content" data-aos="fade-up">
+      <nav class="breadcrumb">
+        <a href="{{ url_for('index') }}">Home</a>
+        <i class="fa fa-chevron-right"></i>
+        <span>Services</span>
+      </nav>
+      <h1>Our <span class="gradient-text">Services</span></h1>
+      <p>End-to-end IT services across Zendesk, Salesforce, Atlassian and beyond — implementation, licensing, support, and custom development from certified experts.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── SERVICE ANCHORS NAV ────────────────────────────────────────────── -->
+<div class="sticky-service-nav">
+  <div class="container">
+    <div class="ssn-inner">
+      {% for svc in services %}
+      <a href="#{{ svc.id }}" class="ssn-link">{{ svc.icon }} {{ svc.title.split()[0] }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ── SERVICES DETAIL ────────────────────────────────────────────────── -->
+{% for svc in services %}
+<section class="service-detail {% if loop.index is odd %}sd-light{% endif %}" id="{{ svc.id }}">
+  <div class="container sd-inner {% if loop.index is even %}sd-reverse{% endif %}">
+
+    <div class="sd-content" data-aos="fade-right">
+      <div class="sd-tag" style="background:{{ svc.color }}18; color:{{ svc.color }}; border-color:{{ svc.color }}30">
+        {{ svc.icon }} {{ svc.platform if svc.platform else 'DevInfotech Service' }}
+      </div>
+      <h2 class="sd-title">{{ svc.title }}</h2>
+      <p class="sd-desc">{{ svc.description }}</p>
+
+      <ul class="sd-features">
+        {% for feature in svc.features %}
+        <li>
+          <span class="sdf-check" style="background:{{ svc.color }}18; color:{{ svc.color }}"><i class="fa fa-check"></i></span>
+          {{ feature }}
+        </li>
+        {% endfor %}
+      </ul>
+
+      <a href="{{ url_for('contact') }}?service={{ svc.title }}" class="btn btn-primary" style="--btn-bg:{{ svc.color }}">
+        Get a Quote for {{ svc.title.split()[0] }} <i class="fa fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="sd-visual" data-aos="fade-left">
+      <div class="sd-card" style="--sd-color: {{ svc.color }}">
+        <div class="sd-card-icon">{{ svc.icon }}</div>
+        <div class="sd-card-title">{{ svc.title }}</div>
+        <div class="sd-card-short">{{ svc.short }}</div>
+        <div class="sd-card-badge" style="background:{{ svc.color }}; color:#fff">Silver Partner</div>
+        <div class="sd-card-decoration"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endfor %}
+
+<!-- ── PROCESS ────────────────────────────────────────────────────────── -->
+<section class="section process-section">
+  <div class="container">
+    <div class="section-header" data-aos="fade-up">
+      <span class="section-tag">How We Work</span>
+      <h2 class="section-title">Our <span class="gradient-text">Delivery Process</span></h2>
+      <p class="section-subtitle">A proven, transparent process that ensures every project is delivered on time and exceeds expectations.</p>
+    </div>
+
+    <div class="process-steps" data-aos="fade-up">
+      <div class="process-step">
+        <div class="ps-num">01</div>
+        <div class="ps-icon"><i class="fa fa-comments"></i></div>
+        <h3>Discovery Call</h3>
+        <p>We understand your business goals, pain points, and technical landscape through a free 60-minute consultation.</p>
+      </div>
+      <div class="process-arrow"><i class="fa fa-arrow-right"></i></div>
+      <div class="process-step">
+        <div class="ps-num">02</div>
+        <div class="ps-icon"><i class="fa fa-file-lines"></i></div>
+        <h3>Proposal & Plan</h3>
+        <p>Detailed scope of work, timeline, milestones, and transparent pricing — no surprises.</p>
+      </div>
+      <div class="process-arrow"><i class="fa fa-arrow-right"></i></div>
+      <div class="process-step">
+        <div class="ps-num">03</div>
+        <div class="ps-icon"><i class="fa fa-gears"></i></div>
+        <h3>Implementation</h3>
+        <p>Our certified team sets up, configures, and customizes your platform with regular check-ins.</p>
+      </div>
+      <div class="process-arrow"><i class="fa fa-arrow-right"></i></div>
+      <div class="process-step">
+        <div class="ps-num">04</div>
+        <div class="ps-icon"><i class="fa fa-rocket"></i></div>
+        <h3>Go-Live & Support</h3>
+        <p>Smooth launch with team training, documentation, and ongoing support to keep you running.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────────────────────── -->
+<section class="cta-banner">
+  <div class="cta-orb cta-orb-1"></div>
+  <div class="cta-orb cta-orb-2"></div>
+  <div class="container cta-inner" data-aos="fade-up">
+    <h2>Which Service Is Right for You?</h2>
+    <p>Not sure where to start? Our consultants will assess your needs and recommend the best path forward — completely free.</p>
+    <a href="{{ url_for('contact') }}" class="btn btn-primary btn-lg">Talk to an Expert <i class="fa fa-arrow-right"></i></a>
+  </div>
+</section>
+
+{% endblock %}
