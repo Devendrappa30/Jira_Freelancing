@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found — Devendrappa{% endblock %}
+{% block content %}
+<section style="min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center; padding: 120px 24px 80px;">
+  <div>
+    <div style="font-size:7rem; font-weight:800; color:var(--border); font-family:var(--font-display); line-height:1; margin-bottom:16px;">404</div>
+    <h1 style="margin-bottom:12px;">Page Not Found</h1>
+    <p style="max-width:400px; margin:0 auto 32px;">This page seems to have been moved to a different sprint. Let's get you back on track.</p>
+    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+      <a href="{{ url_for('index') }}" class="btn btn-primary">Go Home</a>
+      <a href="{{ url_for('contact') }}" class="btn btn-ghost">Contact Me</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
