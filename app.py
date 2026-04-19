@@ -170,82 +170,110 @@ SERVICES = [
         "delivery": "Monthly retainer",
     },
 ]
-
-PORTFOLIO = [
+   PORTFOLIO = [
     {
-        "id":       1,
-        "client":   "Glasscolab (CRM Implementation)",
+        "id": 1,
+        "client": "Glasscolab (CRM Implementation)",
         "industry": "SaaS / Technology",
         "platform": "Jira Software",
-        "title":    "Salesforce CRM Go-Live — End-to-End Jira Project",
-        "challenge":"Team was managing 126 implementation tasks across 8 epics in spreadsheets. Zero sprint visibility, constant missed deadlines, and no escalation path for risks.",
-        "solution": "Implemented full Jira project with custom workflow (To Do → In Progress → In-Review → Ready for Demo → Done), 8 epics mapped to CRM modules, sprint automation, and 5 real-time dashboards.",
-        "results":  ["126 issues tracked across 8 epics", "5 custom dashboards live", "Zero missed sprint goals in final 3 sprints", "Leadership risk/blocker visibility in real-time"],
-        "image":    "project-dashboard.png",
-        "tags":     ["Jira Setup", "Scrum", "Dashboards"],
+        "title": "Software Simplified Workflow",
+        "challenge": "Existing workflow had 9 confusing statuses with dead-end transitions. Developers were unsure which status to use, leading to cluttered boards and poor visibility.",
+        "solution": "Designed and implemented a clean 5-status 'Software Simplified' workflow: To Do → In Progress → In-Review → Ready for Demo → Done. Added 'Any' transition rules and automation support.",
+        "results": [
+            "Reduced from 9 statuses to 5 clean ones",
+            "60% faster team onboarding",
+            "Eliminated board clutter and confusion",
+            "Deployed across the entire Glasscolab project space"
+        ],
+        "image": "WorkFlow.png",
+        "tags": ["Workflow Design", "Scrum", "Simplification"]
     },
     {
-        "id":       2,
-        "client":   "DevTech Solutions",
+        "id": 2,
+        "client": "DevTech Solutions",
         "industry": "IT Services",
         "platform": "Jira Software",
-        "title":    "Sprint Automation — Subtasks → Story Auto-Transition",
-        "challenge":"Dev team was manually updating parent story status every time all subtasks closed. 40+ manual transitions per sprint, leading to stale boards and inaccurate metrics.",
-        "solution": "Built Jira Automation rule: when ALL subtasks transition to Done, parent Story auto-transitions to Done. Rule scoped to project, owned by Devendrappa, triggered by Automation for Jira actor.",
-        "results":  ["40+ manual updates eliminated per sprint", "Board accuracy improved to near 100%", "Rule runs in <2 seconds on trigger", "Zero false positives in 3-month operation"],
-        "image":    "automation.png",
-        "tags":     ["Automation", "Workflow", "Efficiency"],
+        "title": "Subtasks → Story Auto-Transition Automation",
+        "challenge": "Developers wasted time manually updating parent Story status every time subtasks were completed (40+ manual updates per sprint).",
+        "solution": "Built a smart Jira Automation rule: When ALL subtasks move to 'Done', the parent Story automatically transitions to 'Done'. Rule owned by Devendrappa.",
+        "results": [
+            "Eliminated 40+ manual updates per sprint",
+            "Board accuracy improved to nearly 100%",
+            "Rule executes in under 2 seconds",
+            "Zero false positives over 3 months"
+        ],
+        "image": "Automation.png",
+        "tags": ["Automation", "Workflow", "Efficiency"]
     },
     {
-        "id":       3,
-        "client":   "DevTech Solutions",
+        "id": 3,
+        "client": "DevTech Solutions",
         "industry": "IT Services",
         "platform": "Jira Software",
-        "title":    "Leadership Delivery Overview Dashboard",
-        "challenge":"C-level stakeholders had no consolidated view of project health. They relied on weekly PDF reports that were always 3 days stale by the time they arrived.",
-        "solution": "Built a real-time Leadership Delivery Overview dashboard: active risks/blockers/dependencies, completed vs upcoming epics, top blockers with owners, risk register, and two-dimensional epic stats.",
-        "results":  ["Live risk & blocker tracking (2 active)", "Completed epics: 4 of 4 on time", "Upcoming epic pipeline visible (5 epics)", "Executive reporting time cut from 3hrs to 0"],
-        "image":    "leadership-dashboard.png",
-        "tags":     ["Dashboards", "Leadership", "Reporting"],
+        "title": "Leadership Delivery Overview Dashboard",
+        "challenge": "C-level stakeholders had no real-time visibility. They relied on stale weekly PDF reports.",
+        "solution": "Created a live Leadership Dashboard showing active risks, blockers, completed vs upcoming epics, top blockers with owners, and two-dimensional epic statistics.",
+        "results": [
+            "Real-time risk & blocker tracking",
+            "4 out of 4 epics completed on time",
+            "Executive reporting time reduced from 3 hours to 0",
+            "Full visibility into upcoming pipeline (5 epics)"
+        ],
+        "image": "Lidershipdashboards.png",
+        "tags": ["Dashboards", "Leadership", "Reporting"]
     },
     {
-        "id":       4,
-        "client":   "DevTech Solutions",
+        "id": 4,
+        "client": "DevTech Solutions",
         "industry": "IT Services",
         "platform": "Jira Software",
-        "title":    "Custom Workflow Design — Software Simplified",
-        "challenge":"Existing workflow had 9 statuses, multiple dead-end transitions, and developers didn't know which status to use when. Sprint boards were cluttered and misleading.",
-        "solution": "Designed clean 5-status Software Simplified Workflow: To Do → In Progress → In-Review → Ready for Demo → Done. Each status has 'Any' transition rules, automated rule triggers, and is used across 1 Jira space.",
-        "results":  ["9 statuses simplified to 5", "Dev team onboarding time reduced by 60%", "Board clutter eliminated", "Deployed across entire Glasscolab space"],
-        "image":    "workflow.png",
-        "tags":     ["Workflow Design", "UX", "Scrum"],
+        "title": "Custom Fields & Risk Tracking Schema",
+        "challenge": "Risks, compliance, and vendor issues were buried in comments with no structured tracking.",
+        "solution": "Designed rich custom field schema including Risk Category, Probability, Impact, Risk Score, Mitigation Plan, Target Date, Risk Owner, and more.",
+        "results": [
+            "6 powerful custom fields per risk issue",
+            "Automated risk score calculation",
+            "Risks now fully reportable in dashboards",
+            "Integrated into Leadership Delivery Overview"
+        ],
+        "image": "Custome filedes & grouping.png",
+        "tags": ["Custom Fields", "Risk Management", "Governance"]
     },
     {
-        "id":       5,
-        "client":   "DevTech Solutions",
+        "id": 5,
+        "client": "DevTech Solutions",
         "industry": "IT Services",
         "platform": "Jira Software",
-        "title":    "Sprint Overview & Burndown Dashboard",
-        "challenge":"Scrum Master had no single view of sprint health, team workload, burndown, impediments, and blockers. Used 4 separate tools cobbled together.",
-        "solution": "Built comprehensive Sprint Overview dashboard: GI Sprint 5 health (8 done / 10 in-progress / 18 to-do), burndown chart, team workload by assignee (Emma 39%, James 26%), impediments tracker, and blockers list.",
-        "results":  ["0 days left → sprint closed cleanly", "4-person workload balanced and visible", "1 impediment tracked & resolved", "Burndown within guideline throughout"],
-        "image":    "sprint-dashboard.png",
-        "tags":     ["Sprint", "Scrum", "Burndown"],
+        "title": "Sprint Overview & Burndown Dashboard",
+        "challenge": "Scrum Master had to juggle 4 different tools to track sprint health, workload, burndown, and impediments.",
+        "solution": "Built a single comprehensive Sprint Overview dashboard with sprint health, burndown chart, team workload heatmap, impediments tracker, and blockers list.",
+        "results": [
+            "Sprint closed cleanly with 0 days left",
+            "Balanced 4-person team workload visible at a glance",
+            "All impediments tracked and resolved",
+            "Burndown stayed within guidelines throughout"
+        ],
+        "image": "SprintDashbaord.png",
+        "tags": ["Sprint", "Scrum", "Burndown"]
     },
     {
-        "id":       6,
-        "client":   "DevTech Solutions",
-        "industry": "IT Services",
+        "id": 6,
+        "client": "Glasscolab",
+        "industry": "SaaS / Technology",
         "platform": "Jira Software",
-        "title":    "Custom Fields, Risk Tracking & Issue Grouping",
-        "challenge":"Project had vendor, compliance, and technical risks with no structured tracking. Risk probability, impact, score, and mitigation plans were buried in comments.",
-        "solution": "Created custom field schema: Risk Category, Probability, Impact, Risk Score, Risk Level, Mitigation Plan, Target Mitigation Date, Contingency Plan, Risk Owner — all visible in issue view and reportable in dashboards.",
-        "results":  ["6 custom fields per risk issue", "Risk score calculation automated", "Risk Owner assignable with SLA", "Integrated into Leadership dashboard"],
-        "image":    "custom-fields.png",
-        "tags":     ["Custom Fields", "Risk Management", "Governance"],
-    },
+        "title": "End-to-End Project Overview Dashboard",
+        "challenge": "126 implementation tasks across 8 epics were tracked in spreadsheets with zero sprint visibility and frequent missed deadlines.",
+        "solution": "Built a complete Project Overview dashboard with execution summary, epic progress, active risks, dependencies, blockers, and two-dimensional workload statistics.",
+        "results": [
+            "126 issues fully tracked across 8 epics",
+            "Real-time leadership visibility into risks and blockers",
+            "Zero missed sprint goals in final 3 sprints",
+            "Full team workload and capacity heatmap"
+        ],
+        "image": "Project dashboard.png",
+        "tags": ["Dashboards", "Project Overview", "Scrum"]
+    }
 ]
-
 PROCESS = [
     {"step": "01", "icon": "💬", "title": "Discovery Call",     "desc": "Free 30-min call to understand your team's structure, tools, pain points, and Jira goals."},
     {"step": "02", "icon": "📋", "title": "Proposal & Scope",   "desc": "Detailed scope, timeline, deliverables, and fixed price — no surprises, no scope creep."},
