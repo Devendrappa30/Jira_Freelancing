@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Devendrappa | Jira Expert & Agile PM Freelancer — Bangalore{% endblock %}
+{% block content %}
+
+<!-- ── HERO ─────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-noise"></div>
+  <div class="hero-grid-lines"></div>
+
+  <div class="hero-inner">
+    <div class="hero-text" data-reveal>
+      <div class="hero-eyebrow">
+        <span class="avail-badge"><span class="avail-dot"></span> Available for Projects</span>
+        <span class="sep">·</span>
+        <span>Bengaluru, India</span>
+        <span class="sep">·</span>
+        <span>Replies in 4hrs</span>
+      </div>
+
+      <h1 class="hero-headline">
+        I set up <em>Jira</em> the<br/>way your team<br/>actually works.
+      </h1>
+
+      <p class="hero-sub">
+        Certified ScrumMaster with 10+ years delivering software projects. I implement Jira from scratch, design custom workflows, build automations that eliminate manual work, and coach teams to run real Agile sprints.
+      </p>
+
+      <div class="hero-certs">
+        {% for cert in profile.certifications %}
+        <div class="cert-chip">{{ cert.icon }} {{ cert.name }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="hero-actions">
+        <a href="{{ url_for('contact') }}" class="btn btn-primary">
+          Book Free Call <i class="fa fa-arrow-right"></i>
+        </a>
+        <a href="{{ url_for('portfolio') }}" class="btn btn-ghost">
+          See My Work
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-visual" data-reveal-delay>
+      <div class="jira-card-stack">
+        <div class="jcard jcard-1">
+          <div class="jcard-header">
+            <span class="jcard-dot" style="background:#0052CC"></span>
+            <span class="jcard-title">Sprint Health</span>
+          </div>
+          <div class="jcard-body">
+            <div class="jcard-stat"><span class="js-num" style="color:#10b981">18</span><span>Done</span></div>
+            <div class="jcard-stat"><span class="js-num" style="color:#f59e0b">10</span><span>In Progress</span></div>
+            <div class="jcard-stat"><span class="js-num" style="color:#6b7280">8</span><span>To Do</span></div>
+          </div>
+          <div class="jcard-bar">
+            <div class="jbar-fill" style="width:50%; background:#10b981"></div>
+          </div>
+        </div>
+
+        <div class="jcard jcard-2">
+          <div class="jcard-header">
+            <span class="jcard-dot" style="background:#f59e0b"></span>
+            <span class="jcard-title">Automation Rule Fired</span>
+          </div>
+          <div class="jcard-body-sm">
+            <i class="fa fa-bolt" style="color:#f59e0b"></i>
+            Subtask → Story Done ✓
+          </div>
+        </div>
+
+        <div class="jcard jcard-3">
+          <div class="jcard-header">
+            <span class="jcard-dot" style="background:#ef4444"></span>
+            <span class="jcard-title">Active Risks</span>
+          </div>
+          <div class="jcard-body-sm risk">
+            <i class="fa fa-triangle-exclamation" style="color:#ef4444"></i>
+            2 High · 1 Medium · 0 Critical
+          </div>
+        </div>
+
+        <div class="hero-exp-badge">
+          <span class="heb-num">10+</span>
+          <span class="heb-label">Years Exp.</span>
+        </div>
+
+        <div class="hero-cert-badge">
+          <span>🏅 CSM</span>
+          <span style="font-size:.7rem; opacity:.7">Scrum Alliance</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ─────────────────────────────────────────────────────────────── -->
+<section class="stats-strip">
+  <div class="container">
+    <div class="stats-row">
+      {% for s in profile.stats %}
+      <div class="stat-box" data-reveal>
+        <div class="stat-num">{{ s.value }}</div>
+        <div class="stat-lbl">{{ s.label }}</div>
+      </div>
+      {% if not loop.last %}<div class="stat-sep"></div>{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── SERVICES OVERVIEW ──────────────────────────────────────────────────── -->
+<section class="section bg-off">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">What I Do</div>
+      <h2>Services That Make <em>Jira Actually Work</em></h2>
+      <p>From zero-to-sprint-ready setups to complex automation and executive dashboards.</p>
+    </div>
+
+    <div class="services-preview-grid">
+      {% for svc in services %}
+      <a href="{{ url_for('services') }}#{{ svc.id }}" class="svc-preview-card" data-reveal>
+        <div class="svc-icon">{{ svc.icon }}</div>
+        <div class="svc-info">
+          <h3>{{ svc.title }}</h3>
+          <p>{{ svc.short }}</p>
+          <span class="svc-price">{{ svc.price }}</span>
+        </div>
+        <div class="svc-arrow"><i class="fa fa-arrow-right"></i></div>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="sec-cta" data-reveal>
+      <a href="{{ url_for('services') }}" class="btn btn-outline">View All Services <i class="fa fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROCESS ────────────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">How It Works</div>
+      <h2>From Enquiry to <em>Go-Live</em></h2>
+      <p>A proven 5-step process that delivers working Jira setups on time, every time.</p>
+    </div>
+    <div class="process-track">
+      {% for step in process %}
+      <div class="process-node" data-reveal>
+        <div class="pn-step">{{ step.step }}</div>
+        <div class="pn-icon">{{ step.icon }}</div>
+        <h4>{{ step.title }}</h4>
+        <p>{{ step.desc }}</p>
+      </div>
+      {% if not loop.last %}<div class="process-line"></div>{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── PORTFOLIO PREVIEW ──────────────────────────────────────────────────── -->
+<section class="section bg-off">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">Real Work</div>
+      <h2>From the <em>Portfolio</em></h2>
+      <p>Screenshots from live Jira implementations I've delivered for real clients.</p>
+    </div>
+
+    <div class="portfolio-preview-grid">
+      {% for item in portfolio %}
+      <div class="pp-card" data-reveal>
+        <div class="pp-img-wrap">
+          <img src="{{ url_for('static', filename='images/' + item.image) }}" alt="{{ item.title }}" loading="lazy"/>
+          <div class="pp-overlay">
+            <div class="pp-tags">
+              {% for tag in item.tags %}
+              <span class="pp-tag">{{ tag }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="pp-body">
+          <div class="pp-client">{{ item.client }}</div>
+          <h3>{{ item.title }}</h3>
+          <div class="pp-results">
+            {% for r in item.results[:2] %}
+            <span><i class="fa fa-check"></i> {{ r }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="sec-cta" data-reveal>
+      <a href="{{ url_for('portfolio') }}" class="btn btn-outline">View All Projects <i class="fa fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ───────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">Client Words</div>
+      <h2>What People <em>Say</em></h2>
+    </div>
+    <div class="testi-grid">
+      {% for t in testimonials %}
+      <div class="testi-card" data-reveal>
+        <div class="testi-stars">{% for i in range(t.rating) %}<i class="fa fa-star"></i>{% endfor %}</div>
+        <p class="testi-text">"{{ t.text }}"</p>
+        <div class="testi-author">
+          <div class="testi-avatar">{{ t.name[0] }}</div>
+          <div>
+            <div class="testi-name">{{ t.name }}</div>
+            <div class="testi-role">{{ t.role }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA STRIP ──────────────────────────────────────────────────────────── -->
+<section class="cta-strip">
+  <div class="container">
+    <div class="cta-strip-inner" data-reveal>
+      <div>
+        <h2>Ready to fix your Jira?</h2>
+        <p>Free 30-minute discovery call. No commitment. Just clarity.</p>
+      </div>
+      <div class="cta-strip-actions">
+        <a href="{{ url_for('contact') }}" class="btn btn-primary btn-lg">Book Free Call <i class="fa fa-calendar-check"></i></a>
+        <a href="https://wa.me/919483017604" target="_blank" class="btn btn-ghost btn-lg"><i class="fab fa-whatsapp"></i> WhatsApp Me</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
