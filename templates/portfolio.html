@@ -1,71 +1,54 @@
 {% extends "base.html" %}
-{% block title %}Portfolio — DevInfotech Pvt. Ltd.{% endblock %}
+{% block title %}Portfolio — Devendrappa | Jira Expert{% endblock %}
 
 {% block content %}
 
-<!-- ── PAGE HERO ──────────────────────────────────────────────────────── -->
 <section class="page-hero">
-  <div class="hero-bg-grid"></div>
-  <div class="container page-hero-inner">
-    <div class="page-hero-content" data-aos="fade-up">
-      <nav class="breadcrumb">
-        <a href="{{ url_for('index') }}">Home</a>
-        <i class="fa fa-chevron-right"></i>
-        <span>Portfolio</span>
-      </nav>
-      <h1>Our <span class="gradient-text">Portfolio</span></h1>
-      <p>Real projects. Real results. See how we've transformed businesses across India with enterprise technology.</p>
-    </div>
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('index') }}">Home</a> <i class="fa fa-chevron-right"></i> Portfolio</nav>
+    <h1>Real Projects. <span class="gradient-text">Real Results.</span></h1>
+    <p>Live Jira implementations that delivered measurable business impact.</p>
   </div>
 </section>
 
-<!-- ── FILTER BAR ─────────────────────────────────────────────────────── -->
+<!-- Filter Bar -->
 <div class="filter-bar">
-  <div class="container filter-inner">
-    <button class="filter-btn active" data-filter="all">All Projects</button>
-    <button class="filter-btn" data-filter="Salesforce">Salesforce</button>
-    <button class="filter-btn" data-filter="Zendesk">Zendesk</button>
-    <button class="filter-btn" data-filter="Jira">Jira</button>
-    <button class="filter-btn" data-filter="Custom Dev">Custom Dev</button>
+  <div class="container">
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all">All Projects</button>
+      {% for tag in portfolio|map(attribute='tags')|sum(start=[]) | unique %}
+      <button class="filter-btn" data-filter="{{ tag }}">{{ tag }}</button>
+      {% endfor %}
+    </div>
   </div>
 </div>
 
-<!-- ── PORTFOLIO CARDS ────────────────────────────────────────────────── -->
 <section class="section">
   <div class="container">
-    <div class="portfolio-full-grid" id="portfolioGrid">
+    <div class="port-grid" id="portfolioGrid">
       {% for item in portfolio %}
-      <div class="portfolio-card-full" data-platform="{{ item.platform }}" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 80 }}">
-        <div class="pcf-header" style="background: linear-gradient(135deg, {{ item.tag_color }}15, {{ item.tag_color }}05); border-bottom: 2px solid {{ item.tag_color }}25">
-          <div class="pcf-meta">
-            <span class="pc-platform" style="background:{{ item.tag_color }}; color:#fff">{{ item.platform }}</span>
-            <span class="pcf-industry">{{ item.industry }}</span>
-          </div>
-          <div class="pcf-num" style="color:{{ item.tag_color }}20">0{{ item.id }}</div>
-        </div>
-
-        <div class="pcf-body">
-          <div class="pcf-client"><i class="fa fa-building"></i> {{ item.client }}</div>
-          <h3 class="pcf-title">{{ item.title }}</h3>
-          <p class="pcf-desc">{{ item.description }}</p>
-
-          <div class="pcf-results">
-            <div class="pcfr-label">Key Outcomes</div>
-            <div class="pcfr-list">
-              {% for result in item.results %}
-              <div class="pcfr-item">
-                <span class="pcfr-check" style="background:{{ item.tag_color }}18; color:{{ item.tag_color }}"><i class="fa fa-check"></i></span>
-                {{ result }}
-              </div>
+      <div class="port-card" data-tags="{{ item.tags|join(',') }}" onclick="showPortfolioModal({{ item.id }})">
+        <div class="port-img-wrap">
+          <img src="{{ url_for('static', filename='images/' + item.image) }}" alt="{{ item.title }}" loading="lazy">
+          <div class="port-img-overlay">
+            <div class="port-tags">
+              {% for tag in item.tags %}
+              <span class="port-tag">{{ tag }}</span>
               {% endfor %}
             </div>
           </div>
         </div>
-
-        <div class="pcf-footer">
-          <a href="{{ url_for('contact') }}?service={{ item.platform }}" class="btn btn-sm btn-outline" style="--btn-outline-color:{{ item.tag_color }}">
-            Similar Project? <i class="fa fa-arrow-right"></i>
-          </a>
+        <div class="port-body">
+          <div class="port-meta">
+            <span class="port-industry">{{ item.industry }}</span>
+            <span class="port-platform">{{ item.platform }}</span>
+          </div>
+          <h3>{{ item.title }}</h3>
+          <div class="port-client">{{ item.client }}</div>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin:12px 0;">{{ item.challenge[:110] }}…</p>
+        </div>
+        <div class="port-footer">
+          <span class="btn btn-sm btn-outline">View Full Case Study →</span>
         </div>
       </div>
       {% endfor %}
@@ -73,73 +56,67 @@
   </div>
 </section>
 
-<!-- ── IMPACT NUMBERS ─────────────────────────────────────────────────── -->
-<section class="section impact-section">
-  <div class="container">
-    <div class="section-header" data-aos="fade-up">
-      <span class="section-tag">Our Impact</span>
-      <h2 class="section-title">Numbers That <span class="gradient-text">Speak</span></h2>
-    </div>
-    <div class="impact-grid" data-aos="fade-up">
-      <div class="impact-item">
-        <div class="impact-value">50+</div>
-        <div class="impact-label">Projects Delivered</div>
-      </div>
-      <div class="impact-item">
-        <div class="impact-value">30+</div>
-        <div class="impact-label">Happy Clients</div>
-      </div>
-      <div class="impact-item">
-        <div class="impact-value">8</div>
-        <div class="impact-label">Industries Served</div>
-      </div>
-      <div class="impact-item">
-        <div class="impact-value">98%</div>
-        <div class="impact-label">Client Retention</div>
-      </div>
-      <div class="impact-item">
-        <div class="impact-value">100%</div>
-        <div class="impact-label">On-Time Delivery</div>
-      </div>
-    </div>
+<!-- PORTFOLIO MODAL -->
+<div id="portfolioModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <div id="modalBody"></div>
   </div>
-</section>
-
-<!-- ── CTA ────────────────────────────────────────────────────────────── -->
-<section class="cta-banner">
-  <div class="cta-orb cta-orb-1"></div>
-  <div class="cta-orb cta-orb-2"></div>
-  <div class="container cta-inner" data-aos="fade-up">
-    <h2>Want Results Like These?</h2>
-    <p>Let's talk about your project. Our first consultation is free and comes with a detailed recommendation tailored to your business.</p>
-    <a href="{{ url_for('contact') }}" class="btn btn-primary btn-lg">Start Your Project <i class="fa fa-rocket"></i></a>
-  </div>
-</section>
+</div>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Portfolio filter
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  const cards = document.querySelectorAll('.portfolio-card-full');
-
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const filter = btn.dataset.filter;
-      cards.forEach(card => {
-        const platform = card.dataset.platform;
-        if (filter === 'all' || platform.includes(filter)) {
-          card.style.display = 'flex';
-          card.style.opacity = '1';
-        } else {
-          card.style.opacity = '0';
-          setTimeout(() => { card.style.display = 'none'; }, 300);
-        }
-      });
+// Portfolio Filter
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.port-card').forEach(card => {
+      if (filter === 'all' || card.dataset.tags.includes(filter)) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
     });
   });
+});
+
+// Modal
+function showPortfolioModal(id) {
+  const item = {{ portfolio | tojson | safe }}.find(p => p.id === id);
+  if (!item) return;
+
+  let html = `
+    <img src="${'{{ url_for("static", filename="images/") }}' + item.image}" style="width:100%; border-radius:12px; margin-bottom:24px;" alt="${item.title}">
+    <h2>${item.title}</h2>
+    <p><strong>Client:</strong> ${item.client} • <strong>${item.industry}</strong></p>
+    
+    <h4>Challenge</h4>
+    <p>${item.challenge}</p>
+    
+    <h4>Solution</h4>
+    <p>${item.solution}</p>
+    
+    <h4>Key Results</h4>
+    <ul style="padding-left:20px;">
+      ${item.results.map(r => `<li style="margin:8px 0;">✅ ${r}</li>`).join('')}
+    </ul>
+  `;
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('portfolioModal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('portfolioModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('portfolioModal').addEventListener('click', function(e) {
+  if (e.target.id === 'portfolioModal') closeModal();
+});
 </script>
 {% endblock %}
