@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Portfolio — DevInfotech Pvt. Ltd.{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ──────────────────────────────────────────────────────── -->
+<section class="page-hero">
+  <div class="hero-bg-grid"></div>
+  <div class="container page-hero-inner">
+    <div class="page-hero-content" data-aos="fade-up">
+      <nav class="breadcrumb">
+        <a href="{{ url_for('index') }}">Home</a>
+        <i class="fa fa-chevron-right"></i>
+        <span>Portfolio</span>
+      </nav>
+      <h1>Our <span class="gradient-text">Portfolio</span></h1>
+      <p>Real projects. Real results. See how we've transformed businesses across India with enterprise technology.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── FILTER BAR ─────────────────────────────────────────────────────── -->
+<div class="filter-bar">
+  <div class="container filter-inner">
+    <button class="filter-btn active" data-filter="all">All Projects</button>
+    <button class="filter-btn" data-filter="Salesforce">Salesforce</button>
+    <button class="filter-btn" data-filter="Zendesk">Zendesk</button>
+    <button class="filter-btn" data-filter="Jira">Jira</button>
+    <button class="filter-btn" data-filter="Custom Dev">Custom Dev</button>
+  </div>
+</div>
+
+<!-- ── PORTFOLIO CARDS ────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="portfolio-full-grid" id="portfolioGrid">
+      {% for item in portfolio %}
+      <div class="portfolio-card-full" data-platform="{{ item.platform }}" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 80 }}">
+        <div class="pcf-header" style="background: linear-gradient(135deg, {{ item.tag_color }}15, {{ item.tag_color }}05); border-bottom: 2px solid {{ item.tag_color }}25">
+          <div class="pcf-meta">
+            <span class="pc-platform" style="background:{{ item.tag_color }}; color:#fff">{{ item.platform }}</span>
+            <span class="pcf-industry">{{ item.industry }}</span>
+          </div>
+          <div class="pcf-num" style="color:{{ item.tag_color }}20">0{{ item.id }}</div>
+        </div>
+
+        <div class="pcf-body">
+          <div class="pcf-client"><i class="fa fa-building"></i> {{ item.client }}</div>
+          <h3 class="pcf-title">{{ item.title }}</h3>
+          <p class="pcf-desc">{{ item.description }}</p>
+
+          <div class="pcf-results">
+            <div class="pcfr-label">Key Outcomes</div>
+            <div class="pcfr-list">
+              {% for result in item.results %}
+              <div class="pcfr-item">
+                <span class="pcfr-check" style="background:{{ item.tag_color }}18; color:{{ item.tag_color }}"><i class="fa fa-check"></i></span>
+                {{ result }}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="pcf-footer">
+          <a href="{{ url_for('contact') }}?service={{ item.platform }}" class="btn btn-sm btn-outline" style="--btn-outline-color:{{ item.tag_color }}">
+            Similar Project? <i class="fa fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── IMPACT NUMBERS ─────────────────────────────────────────────────── -->
+<section class="section impact-section">
+  <div class="container">
+    <div class="section-header" data-aos="fade-up">
+      <span class="section-tag">Our Impact</span>
+      <h2 class="section-title">Numbers That <span class="gradient-text">Speak</span></h2>
+    </div>
+    <div class="impact-grid" data-aos="fade-up">
+      <div class="impact-item">
+        <div class="impact-value">50+</div>
+        <div class="impact-label">Projects Delivered</div>
+      </div>
+      <div class="impact-item">
+        <div class="impact-value">30+</div>
+        <div class="impact-label">Happy Clients</div>
+      </div>
+      <div class="impact-item">
+        <div class="impact-value">8</div>
+        <div class="impact-label">Industries Served</div>
+      </div>
+      <div class="impact-item">
+        <div class="impact-value">98%</div>
+        <div class="impact-label">Client Retention</div>
+      </div>
+      <div class="impact-item">
+        <div class="impact-value">100%</div>
+        <div class="impact-label">On-Time Delivery</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────────────────────── -->
+<section class="cta-banner">
+  <div class="cta-orb cta-orb-1"></div>
+  <div class="cta-orb cta-orb-2"></div>
+  <div class="container cta-inner" data-aos="fade-up">
+    <h2>Want Results Like These?</h2>
+    <p>Let's talk about your project. Our first consultation is free and comes with a detailed recommendation tailored to your business.</p>
+    <a href="{{ url_for('contact') }}" class="btn btn-primary btn-lg">Start Your Project <i class="fa fa-rocket"></i></a>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Portfolio filter
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.portfolio-card-full');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      cards.forEach(card => {
+        const platform = card.dataset.platform;
+        if (filter === 'all' || platform.includes(filter)) {
+          card.style.display = 'flex';
+          card.style.opacity = '1';
+        } else {
+          card.style.opacity = '0';
+          setTimeout(() => { card.style.display = 'none'; }, 300);
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
