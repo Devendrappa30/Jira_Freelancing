@@ -1422,5 +1422,22 @@ button[type="submit"]:hover {
     width: 45px;
     height: 45px;
     font-size: 1rem;
+     
+     /* Modal */
+.modal {
+  position: fixed; inset: 0; background: rgba(10,14,23,.95);
+  display: flex; align-items: center; justify-content: center; z-index: 10000;
+}
+.modal-content {
+  background: var(--surface); max-width: 780px; width: 90%;
+  border-radius: 20px; padding: 30px; position: relative; max-height: 90vh; overflow-y: auto;
+}
+.modal-close {
+  position: absolute; top: 20px; right: 25px; font-size: 2rem; cursor: pointer; color: var(--text-muted);
+}
+
+/* Extra polish for port cards */
+.port-card { cursor: pointer; transition: all .3s ease; }
+.port-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
   }
 }
