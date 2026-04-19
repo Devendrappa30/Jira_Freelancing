@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}About — Devendrappa | Certified ScrumMaster & Jira Expert{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('index') }}">Home</a> <i class="fa fa-chevron-right"></i> About</nav>
+    <h1>The Person Behind <em>the Jira</em></h1>
+    <p>10+ years of software implementation. Certified. Battle-tested. Based in Bangalore.</p>
+  </div>
+</section>
+
+<!-- ── STORY ──────────────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container about-story-grid">
+    <div class="about-avatar-col" data-reveal>
+      <div class="about-avatar">D</div>
+      <div class="about-name-card">
+        <strong>Devendrappa</strong>
+        <span>Certified ScrumMaster (CSM)</span>
+        <span>Jira Implementation Expert</span>
+        <div class="avail-badge mt-12"><span class="avail-dot"></span> Available for Projects</div>
+      </div>
+      <div class="about-quick-links">
+        <a href="https://www.linkedin.com/in/Devendrappa" target="_blank" class="aql-link"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
+        <a href="mailto:Devendrappa@outlook.com" class="aql-link"><i class="fa fa-envelope"></i> Email</a>
+        <a href="https://wa.me/919483017604" target="_blank" class="aql-link"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="about-story-col" data-reveal-delay>
+      <div class="sec-tag">My Story</div>
+      <h2>10 Years of Making Teams <em>Ship Faster</em></h2>
+      <p>I started as a Business Analyst in 2015 at Estuate Software, where I first got my hands on Zendesk CRM implementations. I discovered something that would define my career: the right tool, configured correctly, changes everything for a team.</p>
+      <p>Over the next decade — through roles at Estuate, Tesser Insights, and Kloudserve — I led implementations across Zendesk, Microsoft Dynamics CRM/ERP, and Salesforce. I managed sprint teams, ran Scrum ceremonies, built dashboards for C-level stakeholders, and helped organizations shift from spreadsheet chaos to structured, measurable delivery.</p>
+      <p>Today, I focus entirely on what I do best: <strong>Jira implementation and Agile coaching</strong>. As a freelancer, I bring enterprise-grade expertise to teams of every size — startups to MNCs — without the overhead of a large consultancy.</p>
+      <p>I earned my Certified ScrumMaster (CSM) from Scrum Alliance, completed Google's Project Management certificate, and stay current through PMI's Generative AI program. I believe Jira is only as good as the thinking behind its setup — and that's where I add the most value.</p>
+
+      <div class="about-expertise-chips">
+        <strong>Core Expertise:</strong>
+        <div class="chips-row">
+          {% for m in profile.methodologies %}
+          <span class="chip">{{ m }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CAREER TIMELINE ────────────────────────────────────────────────────── -->
+<section class="section bg-off">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">Career</div>
+      <h2>Professional <em>Journey</em></h2>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-item" data-reveal>
+        <div class="tl-date">Mar 2023 — Present</div>
+        <div class="tl-card">
+          <div class="tl-role">Assistant Project Manager</div>
+          <div class="tl-company">Kloudserve Software Pvt. Ltd. — Bangalore</div>
+          <ul>
+            <li>Managed full project lifecycle using Scrum and Kanban for Salesforce implementations, upgrades and web/app dev projects</li>
+            <li>Led Scrum ceremonies: daily standups, sprint planning, reviews, retrospectives</li>
+            <li>Achieved <strong>95% on-time delivery rate</strong> and <strong>15% improvement</strong> in team efficiency</li>
+            <li>Utilized Jira for sprint backlog, burndown tracking, and data-driven decision making</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item" data-reveal>
+        <div class="tl-date">Nov 2019 — Mar 2023</div>
+        <div class="tl-card">
+          <div class="tl-role">Project Assistant</div>
+          <div class="tl-company">Tesser Insights Pvt. Ltd. — Bangalore</div>
+          <ul>
+            <li>Led end-to-end Microsoft Dynamics CRM and ERP implementations using Hybrid (Waterfall + Agile)</li>
+            <li>Main client contact for stakeholder alignment, scope, and deliverables across all project phases</li>
+            <li>Managed risk mitigation across implementation, support, and upgrade projects</li>
+            <li>KPI tracking: project timelines, budget adherence, defect rates, customer satisfaction, velocity</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item" data-reveal>
+        <div class="tl-date">Apr 2016 — Nov 2019</div>
+        <div class="tl-card">
+          <div class="tl-role">Project Associate</div>
+          <div class="tl-company">Estuate Software Pvt. Ltd. — Bangalore</div>
+          <ul>
+            <li>Full implementation, data migration, rollout and maintenance of Zendesk Sell CRM solutions</li>
+            <li>Managed client communications, issues, and feedback loops to drive satisfaction</li>
+            <li>Fostered collaboration between dev teams and stakeholders across the project lifecycle</li>
+            <li>Conducted regular project status meetings and stakeholder reporting</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item" data-reveal>
+        <div class="tl-date">Feb 2015 — Apr 2016</div>
+        <div class="tl-card">
+          <div class="tl-role">Business Analyst</div>
+          <div class="tl-company">Estuate Software Pvt. Ltd. — Bangalore</div>
+          <ul>
+            <li>Business process analysis, requirements gathering, and use case demonstrations for Zendesk CRM</li>
+            <li>Translated business needs into technical specifications for dev teams</li>
+            <li>Delivered customized CRM solutions that boosted client satisfaction and operational efficiency</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CERTIFICATIONS ─────────────────────────────────────────────────────── -->
+<section class="section" id="certifications">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">Credentials</div>
+      <h2>Certifications &amp; <em>Education</em></h2>
+    </div>
+
+    <div class="certs-grid">
+      {% for cert in profile.certifications %}
+      <div class="cert-card" data-reveal>
+        <div class="cert-icon">{{ cert.icon }}</div>
+        <h4>{{ cert.name }}</h4>
+        <p>{{ cert.issuer }}</p>
+      </div>
+      {% endfor %}
+
+      <div class="cert-card edu-card" data-reveal>
+        <div class="cert-icon">🎓</div>
+        <h4>MBA in Systems</h4>
+        <p>Bangalore University · 2015</p>
+      </div>
+
+      <div class="cert-card edu-card" data-reveal>
+        <div class="cert-icon">📚</div>
+        <h4>B.Com in Commerce</h4>
+        <p>Gulbarga University · 2012</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TOOLS ──────────────────────────────────────────────────────────────── -->
+<section class="section bg-off">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">Tech Stack</div>
+      <h2>Tools &amp; <em>Platforms</em></h2>
+    </div>
+    <div class="tools-grid" data-reveal>
+      {% for tool in profile.tools %}
+      <div class="tool-chip">{{ tool }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ───────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">Social Proof</div>
+      <h2>Client <em>Testimonials</em></h2>
+    </div>
+    <div class="testi-grid">
+      {% for t in testimonials %}
+      <div class="testi-card" data-reveal>
+        <div class="testi-stars">{% for i in range(t.rating) %}<i class="fa fa-star"></i>{% endfor %}</div>
+        <p class="testi-text">"{{ t.text }}"</p>
+        <div class="testi-author">
+          <div class="testi-avatar">{{ t.name[0] }}</div>
+          <div>
+            <div class="testi-name">{{ t.name }}</div>
+            <div class="testi-role">{{ t.role }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ────────────────────────────────────────────────────────────────── -->
+<section class="section bg-off" id="faq">
+  <div class="container">
+    <div class="sec-header" data-reveal>
+      <div class="sec-tag">FAQ</div>
+      <h2>Common <em>Questions</em></h2>
+    </div>
+
+    <div class="faq-list" data-reveal>
+      {% for item in faqs %}
+      <div class="faq-item">
+        <button class="faq-q">{{ item.q }} <i class="fa fa-plus"></i></button>
+        <div class="faq-a">{{ item.a }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <div class="container">
+    <div class="cta-strip-inner" data-reveal>
+      <div>
+        <h2>10 years of expertise. One free call.</h2>
+        <p>Let's talk about what your team needs from Jira.</p>
+      </div>
+      <a href="{{ url_for('contact') }}" class="btn btn-primary btn-lg">Book Free 30-Min Call <i class="fa fa-calendar-check"></i></a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.fa').className = 'fa fa-plus';
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      btn.querySelector('.fa').className = 'fa fa-minus';
+    }
+  });
+});
+</script>
+{% endblock %}
