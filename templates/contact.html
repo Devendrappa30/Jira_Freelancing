@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Contact — Devendrappa | Book a Free Jira Consultation{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('index') }}">Home</a> <i class="fa fa-chevron-right"></i> Contact</nav>
+    <h1>Let's Talk <em>Jira</em></h1>
+    <p>Free 30-minute discovery call. I'll tell you exactly what your setup needs — no fluff, no hard sell.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container contact-grid">
+
+    <!-- LEFT: Form -->
+    <div class="contact-form-col" data-reveal>
+      <h2>Send a Message</h2>
+      <p class="contact-sub">I reply to all enquiries within 4 hours during business hours (Mon–Sat, 9AM–7PM IST).</p>
+
+      <form class="contact-form" action="{{ url_for('contact') }}" method="POST" id="contactForm">
+        <div class="form-row-2">
+          <div class="form-field">
+            <label for="name">Your Name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" placeholder="Rajesh Kumar" required/>
+          </div>
+          <div class="form-field">
+            <label for="email">Email Address <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="rajesh@company.com" required/>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-field">
+            <label for="phone">Phone / WhatsApp</label>
+            <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210"/>
+          </div>
+          <div class="form-field">
+            <label for="company">Company / Team</label>
+            <input type="text" id="company" name="company" placeholder="Acme Pvt. Ltd."/>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="service">Service Needed <span class="req">*</span></label>
+          <select id="service" name="service" required>
+            <option value="" disabled selected>Select a service…</option>
+            {% for svc in services %}
+            <option value="{{ svc.title }}">{{ svc.icon }} {{ svc.title }}</option>
+            {% endfor %}
+            <option value="General Inquiry">💬 General Inquiry / Not Sure Yet</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="budget">Approximate Budget</label>
+          <select id="budget" name="budget">
+            <option value="" selected>Prefer not to say</option>
+            <option>Under ₹15,000</option>
+            <option>₹15,000 – ₹40,000</option>
+            <option>₹40,000 – ₹1,00,000</option>
+            <option>₹1,00,000+</option>
+            <option>Monthly retainer</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="message">Tell me about your Jira challenge <span class="req">*</span></label>
+          <textarea id="message" name="message" rows="5" placeholder="What's your current setup? What's broken? What do you need? Even a rough description helps a lot." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+          <span class="btn-txt">Send Message <i class="fa fa-paper-plane"></i></span>
+          <span class="btn-loading" style="display:none"><i class="fa fa-spinner fa-spin"></i> Sending…</span>
+        </button>
+        <p class="form-note"><i class="fa fa-lock"></i> Your info is safe. I never spam or share your details.</p>
+      </form>
+    </div>
+
+    <!-- RIGHT: Info -->
+    <div class="contact-info-col" data-reveal-delay>
+
+      <div class="contact-info-card">
+        <h3>Direct Contact</h3>
+        <div class="ci-row">
+          <div class="ci-icon"><i class="fa fa-envelope"></i></div>
+          <div>
+            <div class="ci-lbl">Email</div>
+            <a href="mailto:{{ profile.email }}" class="ci-val">{{ profile.email }}</a>
+          </div>
+        </div>
+        <div class="ci-row">
+          <div class="ci-icon"><i class="fa fa-phone"></i></div>
+          <div>
+            <div class="ci-lbl">Phone / WhatsApp</div>
+            <a href="tel:{{ profile.phone }}" class="ci-val">{{ profile.phone }}</a>
+          </div>
+        </div>
+        <div class="ci-row">
+          <div class="ci-icon"><i class="fab fa-linkedin-in"></i></div>
+          <div>
+            <div class="ci-lbl">LinkedIn</div>
+            <a href="{{ profile.linkedin }}" target="_blank" class="ci-val">linkedin.com/in/Devendrappa</a>
+          </div>
+        </div>
+        <div class="ci-row">
+          <div class="ci-icon"><i class="fa fa-location-dot"></i></div>
+          <div>
+            <div class="ci-lbl">Location</div>
+            <span class="ci-val">{{ profile.location }}</span>
+          </div>
+        </div>
+        <div class="ci-row">
+          <div class="ci-icon"><i class="fa fa-clock"></i></div>
+          <div>
+            <div class="ci-lbl">Business Hours</div>
+            <span class="ci-val">Mon–Sat · 9:00 AM – 7:00 PM IST</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="response-card">
+        <div class="rc-icon"><i class="fa fa-bolt"></i></div>
+        <div>
+          <strong>Guaranteed 4-Hour Response</strong>
+          <p>I reply to every message within 4 hours during business hours. Most enquiries get a reply in under 2 hours.</p>
+        </div>
+      </div>
+
+      <div class="free-call-card">
+        <div class="fcc-top">
+          <i class="fa fa-calendar-check"></i>
+          <strong>Free Discovery Call</strong>
+        </div>
+        <p>30 minutes. No charge. No obligation. I'll listen, ask the right questions, and give you a clear diagnosis of what your Jira needs.</p>
+        <a href="https://wa.me/919483017604?text=Hi%20Devendrappa%2C%20I%27d%20like%20to%20book%20a%20free%20Jira%20discovery%20call." target="_blank" class="btn btn-ghost" style="margin-top:12px; width:100%; justify-content:center">
+          <i class="fab fa-whatsapp"></i> Schedule via WhatsApp
+        </a>
+      </div>
+
+      <div class="about-certs-mini" id="certifications">
+        <div class="acm-label">Certifications</div>
+        {% for cert in profile.certifications %}
+        <div class="acm-item">{{ cert.icon }} {{ cert.name }} — {{ cert.issuer }}</div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById('contactForm');
+  const btn  = document.getElementById('submitBtn');
+  if (form) {
+    form.addEventListener('submit', () => {
+      btn.querySelector('.btn-txt').style.display    = 'none';
+      btn.querySelector('.btn-loading').style.display = 'flex';
+      btn.disabled = true;
+    });
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const svcParam = urlParams.get('service');
+  if (svcParam) {
+    const sel = document.getElementById('service');
+    if (sel) {
+      for (const opt of sel.options) {
+        if (opt.value.includes(svcParam.split(' ')[0])) { opt.selected = true; break; }
+      }
+    }
+  }
+</script>
+{% endblock %}
