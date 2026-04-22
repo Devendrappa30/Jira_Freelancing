@@ -1,0 +1,519 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FY 2025 Salesforce Q1 Review</title>
+  <style>
+    body {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #e6f0fa, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: #1e3a8a;
+    }
+    .slide {
+      background: linear-gradient(150deg, #ffffff, #dbeafe);
+      width: 90%;
+      max-width: 900px;
+      height: 500px;
+      margin: 25px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(30, 58, 138, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 2px solid #3b82f6;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .slide:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(30, 58, 138, 0.2);
+    }
+    h1 {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      color: #1e40af;
+      font-size: 2.7em;
+      text-align: center;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+    }
+    h2 {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      color: #3b82f6;
+      font-size: 1.9em;
+      border-bottom: 2px solid #60a5fa;
+      padding-bottom: 10px;
+      margin: 20px 0;
+    }
+    h3 {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      color: #1e40af;
+      font-size: 1.4em;
+      margin: 18px 0;
+    }
+    p {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      line-height: 1.7;
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    ul {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      list-style-type: none;
+      margin: 0 0 10px 0;
+      padding-left: 22px;
+      line-height: 1.5;
+      font-size: 0.9em;
+    }
+    ul li {
+      position: relative;
+      margin: 5px 0;
+    }
+    ul li:before {
+      content: '●';
+      color: #3b82f6;
+      position: absolute;
+      left: -22px;
+      font-size: 1.2em;
+    }
+    .list-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .list-column {
+      width: 45%;
+      padding-right: 10px;
+    }
+    table {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border: 1px solid #93c5fd;
+    }
+    th {
+      background: linear-gradient(45deg, #1e40af, #3b82f6);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #f0f7ff;
+    }
+    tr:hover {
+      background-color: #bfdbfe;
+    }
+    .footer {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      font-size: 0.9em;
+      color: #64748b;
+      text-align: center;
+      padding: 15px 0;
+      border-top: 1px solid #93c5fd;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(150deg, #ffffff, #dbeafe);
+    }
+    .content {
+      flex: 1;
+      width: 100%;
+    }
+    .navigation {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      gap: 12px;
+    }
+    .navigation button {
+      padding: 12px 28px;
+      background: linear-gradient(45deg, #1e40af, #3b82f6);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .navigation button:hover {
+      background: linear-gradient(45deg, #1e3a8a, #2563eb);
+      transform: scale(1.05);
+    }
+    a {
+      color: #3b82f6;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: #1e40af;
+      text-decoration: underline;
+    }
+    .highlight {
+      background-color: #bfdbfe;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: inline-block;
+      color: #1e3a8a;
+    }
+  </style>
+</head>
+<body>
+  <!-- Slide 1 -->
+  <div class="slide">
+    <div class="content">
+      <h1>FY 2025 Salesforce Q1 Review</h1>
+      <h2>Projects Progress & Action Plan</h2>
+      <p><strong>Presented by:</strong> <span class="highlight">Devendrappa, IT Project Manager</span></p>
+      <p><strong>Date:</strong> <span class="highlight">May 2025</span></p>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Agenda</h2>
+      <ul>
+        <li>Executive Summary</li>
+        <li>Key Achievements</li>
+        <li>Implementation Projects Overview</li>
+        <li>Support Projects Overview</li>
+        <li>Financial Summary</li>
+        <li>Risks and Issues</li>
+        <li>Team & Resource Overview</li>
+        <li>Roadmap for Next Quarter</li>
+        <li>Key Decisions & Support Needed</li>
+        <li>Q&A</li>
+      </ul>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 3 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Executive Summary</h2>
+      <table>
+        <tr>
+          <th>Overall Status</th>
+          <td><span class="highlight">GREEN</span></td>
+        </tr>
+        <tr>
+          <th>Active Projects</th>
+          <td>4 Implementation, 3 Support</td>
+        </tr>
+        <tr>
+          <th>Customer Satisfaction</th>
+          <td>4.6 / 5</td>
+        </tr>
+        <tr>
+          <th>Highlights</th>
+          <td>
+            <ul>
+              <li>Go-live of Project Alpha</li>
+              <li>Improved SLA compliance (Support)</li>
+              <li>Resource onboarding completed</li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 4 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Key Achievements</h2>
+      <div class="list-container">
+        <ul class="list-column">
+          <li><strong>Implementation</strong></li>
+          <li>Project Alpha went live on 12-Apr-2025</li>
+          <li>Completed UAT for Project Beta</li>
+        </ul>
+        <ul class="list-column">
+          <li><strong>Support</strong></li>
+          <li>SLA adherence improved from 92% to 98%</li>
+          <li>Knowledge base updated with 50+ new articles</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 5 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Implementation Projects Overview</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Status</th>
+            <th>Key Milestones</th>
+            <th>Risks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Alpha</td>
+            <td>Completed</td>
+            <td>Go-Live: Apr 2025</td>
+            <td>Closed</td>
+          </tr>
+          <tr>
+            <td>Beta</td>
+            <td>On Track</td>
+            <td>UAT Completed</td>
+            <td>Integration with legacy system</td>
+          </tr>
+          <tr>
+            <td>Gamma</td>
+            <td>At Risk</td>
+            <td>Design Phase</td>
+            <td>Resource availability</td>
+          </tr>
+          <tr>
+            <td>Delta</td>
+            <td>On Hold</td>
+            <td>Pending Approval</td>
+            <td>Budget approval delay</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 6 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Support Projects Overview</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Support Area</th>
+            <th>SLA</th>
+            <th>Tickets Resolved</th>
+            <th>Key Issue</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SAP Support</td>
+            <td>98%</td>
+            <td>320</td>
+            <td>Long-running batch jobs</td>
+          </tr>
+          <tr>
+            <td>CRM Support</td>
+            <td>97%</td>
+            <td>285</td>
+            <td>Escalations from Sales Ops</td>
+          </tr>
+          <tr>
+            <td>Infra Support</td>
+            <td>96%</td>
+            <td>230</td>
+            <td>Downtime during patching</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 7 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Financial Summary</h2>
+      <h3>Budget vs. Actual (Q1 2025)</h3>
+      <ul>
+        <li><strong>Total Budget:</strong> $420,000</li>
+        <li><strong>Spent:</strong> $390,000</li>
+        <li><strong>Variance:</strong> <span class="highlight">+$30,000 under budget</span></li>
+        <li><strong>Forecast for Q2:</strong> $460,000</li>
+      </ul>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 8 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Risks and Issues</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Mitigation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Risk</td>
+            <td>Integration with legacy systems</td>
+            <td>Engage SME support earlier</td>
+          </tr>
+          <tr>
+            <td>Issue</td>
+            <td>Resource shortage for Project Gamma</td>
+            <td>Contract short-term consultants</td>
+          </tr>
+          <tr>
+            <td>Risk</td>
+            <td>UAT delays due to data quality</td>
+            <td>Implement data validation scripts</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 9 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Team & Resource Overview</h2>
+      <ul>
+        <li><strong>Current Team Size:</strong> 14 (8 Implementation, 6 Support)</li>
+        <li><strong>Key Roles Filled:</strong> Dev Lead, QA, Support Manager</li>
+        <li><strong>Upcoming Needs:</strong>
+          <ul>
+            <li>BI Developer (July)</li>
+            <li>Backup Support Engineer</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 10 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Roadmap & Next Steps (Q2 2025)</h2>
+      <ul>
+        <li><strong>Project Beta:</strong> Go-live scheduled for July</li>
+        <li><strong>Project Gamma:</strong> Finalize design & development kickoff</li>
+        <li><strong>Support:</strong> Automate ticket triaging using AI</li>
+        <li><strong>Process:</strong> Standardize handover checklist between impl & support</li>
+      </ul>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 11 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Stakeholder Support Needed</h2>
+      <ul>
+        <li><strong>Approval:</strong> Project Delta funding</li>
+        <li><strong>Resource:</strong> Temporary staff augmentation for QA</li>
+        <li><strong>Decision:</strong> Align priorities for conflicting support & dev cycles</li>
+      </ul>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Slide 12 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Thank You</h2>
+      <p>Questions? Feedback Welcome<br>Let’s continue to drive success in Q2!</p>
+      <p><strong>Contact:</strong> <a href="mailto:devendrappa@yourcompany.com">devendrappa@yourcompany.com</a></p>
+    </div>
+    <div class="footer">Q1 Review | Confidential | May 2025</div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="navigation">
+    <button onclick="prevSlide()">Previous</button>
+    <button onclick="nextSlide()">Next</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.style.display = i === index ? 'block' : 'none';
+      });
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        showSlide(currentSlide);
+      }
+    }
+
+    // Initialize: Show first slide
+    showSlide(currentSlide);
+  </script>
+</body>
+</html>

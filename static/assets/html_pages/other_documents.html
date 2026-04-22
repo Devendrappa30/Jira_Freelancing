@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Management Resources Hub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #E6F0FA; /* Light blue background */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      background-color: #FFFFFF; /* White container */
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(30, 58, 138, 0.1); /* Blue-tinted shadow */
+    }
+    h1 {
+      font-size: 2.5em;
+      color: #1E3A8A; /* Dark blue */
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      font-size: 1.2em;
+      color: #4B5563; /* Dark gray */
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .top-nav-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-start;
+      margin-bottom: 30px;
+    }
+    .icon-btn {
+      background: #2563EB;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 1.3em;
+      box-shadow: 0 2px 6px rgba(30,58,138,0.08);
+    }
+    .icon-btn:hover {
+      background: #F59E0B;
+      color: #fff;
+    }
+    .section-toggle {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .section-toggle button {
+      padding: 12px 24px;
+      font-size: 1em;
+      background-color: #2563EB; /* Blue */
+      color: #FFFFFF; /* White text */
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .section-toggle button:hover:not(.active) {
+      background-color: #FBBF24; /* Yellow hover */
+    }
+    .section-toggle button.active {
+      background-color: #F59E0B; /* Darker yellow active */
+    }
+    .section-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: space-between;
+    }
+    .section {
+      display: none;
+      flex: 1 1 100%;
+      min-width: 0;
+      border: 1px solid #FBBF24; /* Yellow border */
+      border-radius: 5px;
+      padding: 15px;
+      background-color: #FFFFFF; /* White background */
+    }
+    .section.active {
+      display: block;
+    }
+    .section-description {
+      font-size: 1em;
+      color: #4B5563; /* Dark gray */
+      margin-bottom: 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th {
+      background-color: #2563EB; /* Blue header */
+      color: #FFFFFF; /* White text */
+      padding: 10px;
+      text-align: left;
+      font-size: 0.9em;
+    }
+    td {
+      border: 1px solid #FBBF24; /* Yellow border */
+      padding: 10px;
+      font-size: 0.9em;
+      color: #4B5563; /* Dark gray */
+    }
+    .document-link {
+      color: #1D4ED8; /* Blue link */
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .document-link:hover {
+      color: #B45309; /* Darker yellow-orange hover */
+    }
+    .copyright {
+      font-size: 0.9em;
+      color: #1E3A8A; /* Dark blue */
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 10px;
+      border-top: 1px solid #FBBF24; /* Yellow separator */
+    }
+    @media (max-width: 768px) {
+      .section-container {
+        flex-direction: column;
+      }
+      .section-toggle button {
+        padding: 10px 18px;
+        font-size: 0.9em;
+      }
+      .top-nav-buttons {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="top-nav-buttons">
+      <!-- Return Home Button (icon only) -->
+      <a href="../../index.html" class="icon-btn" title="Return Home" aria-label="Return Home">
+        <!-- Home SVG -->
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M9 21h6a2 2 0 002-2v-7h-2v7H9v-7H7v7a2 2 0 002 2z"/>
+        </svg>
+      </a>
+      <!-- Return Button (icon only) -->
+      <button class="icon-btn" onclick="history.back()" title="Return (Back)" aria-label="Return">
+        <!-- Arrow Left SVG -->
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+    </div>
+
+    <h1>Project Management Resources Hub</h1>
+    <p class="subtitle">Essential Documents for Effective Oversight</p>
+
+    <!-- Section Toggle Buttons -->
+    <div class="section-toggle" role="tablist">
+      <button class="section-btn active" onclick="showSection('project-documents')" role="tab" aria-label="Switch to Project Documents section">Project Documents</button>
+      <button class="section-btn" onclick="showSection('communication')" role="tab" aria-label="Switch to Communication section">Communication</button>
+      <button class="section-btn" onclick="showSection('team-management')" role="tab" aria-label="Switch to Team Management section">Team Management</button>
+      <button class="section-btn" onclick="showSection('technical-docs')" role="tab" aria-label="Switch to Technical Docs section">Technical Docs</button>
+      <button class="section-btn" onclick="showSection('governance-compliance')" role="tab" aria-label="Switch to Governance & Compliance section">Governance & Compliance</button>
+      <button class="section-btn" onclick="showSection('closure-handover')" role="tab" aria-label="Switch to Closure & Handover section">Closure & Handover</button>
+    </div>
+
+    <!-- Section Container -->
+    <div class="section-container">
+
+      <!-- Project Documents Section -->
+      <div id="project-documents" class="section active" role="tabpanel">
+        <h2>Project Documents</h2>
+        <p class="section-description">Core project-related documents, including plans, schedules, and progress reports.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Document Title</th>
+              <th>Description</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IT Support Service Level Agreement (SLA)</td>
+              <td>One-year Salesforce support service overview, including support levels, activities, SLA matrix, and escalation process. Prepared for: Client, May 30, 2025.</td>
+              <td><a href="https://devendrappa30.github.io/portfolio/assets/Documents/5.Support_SLA.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>FY 2025 Salesforce Q1 Review</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="https://devendrappa30.github.io/portfolio/assets/Documents/6.Review_ppt.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>FY 2025 Salesforce Q1 Review</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="assets/html_pages/Review%20PPT.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>FY 2025 Salesforce Q1 Review</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="assets/html_pages/Review%20PPT.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            <tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Communication Section -->
+      <div id="communication" class="section" role="tabpanel">
+        <h2>Communication</h2>
+        <p class="section-description">Documents related to stakeholder updates, meeting notes, and communication plans.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Document Title</th>
+              <th>Description</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IT Support Service Level Agreement (SLA)</td>
+              <td>One-year Salesforce support service overview, including support levels, activities, SLA matrix, and escalation process. Prepared for: Client, May 30, 2025.</td>
+              <td><a href="assets/html_pages/5.Support_SLA.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>FY 2025 Salesforce Q1 Review</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="assets/html_pages/Review%20PPT.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Team Management Section -->
+      <div id="team-management" class="section" role="tabpanel">
+        <h2>Team Management</h2>
+        <p class="section-description">Resources for team assignments, roles, responsibilities, and performance reviews.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Document Title</th>
+              <th>Description</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IT Support Service Level Agreement (SLA)</td>
+              <td>One-year Salesforce support service overview, including support levels, activities, SLA matrix, and escalation process. Prepared for: Client, May 30, 2025.</td>
+              <td><a href="assets/html_pages/Support%20SLA.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>FY 2025 Salesforce Q1 Review</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="assets/html_pages/Review%20PPT.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Technical Docs Section -->
+      <div id="technical-docs" class="section" role="tabpanel">
+        <h2>Technical Docs</h2>
+        <p class="section-description">Technical specifications, system configurations, and integration details.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Document Title</th>
+              <th>Description</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IT Support Service Level Agreement (SLA)</td>
+              <td>One-year Salesforce support service overview, including support levels, activities, SLA matrix, and escalation process. Prepared for: Client, May 30, 2025.</td>
+              <td><a href="assets/html_pages/Support%20SLA.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>FY 2025 Salesforce Q1 Review</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="assets/Documents/6.Review_ppt.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Governance & Compliance Section -->
+      <div id="governance-compliance" class="section" role="tabpanel">
+        <h2>Governance & Compliance</h2>
+        <p class="section-description">Policies, compliance reports, and audit documentation.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Document Title</th>
+              <th>Description</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IT Support Service Level Agreement (SLA)</td>
+              <td>One-year Salesforce support service overview, including support levels, activities, SLA matrix, and escalation process. Prepared for: Client, May 30, 2025.</td>
+              <td><a href="assets/html_pages/Support%20SLA.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>Quarterly Review Meeting</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="assets/html_pages/Review%20PPT.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Closure & Handover Section -->
+      <div id="closure-handover" class="section" role="tabpanel">
+        <h2>Closure & Handover</h2>
+        <p class="section-description">Project closure reports, handover checklists, and lessons learned.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Document Title</th>
+              <th>Description</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IT Support Service Level Agreement (SLA)</td>
+              <td>One-year Salesforce support service overview, including support levels, activities, SLA matrix, and escalation process. Prepared for: Client, May 30, 2025.</td>
+              <td><a href="assets/html_pages/Support%20SLA.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+            <tr>
+              <td>FY 2025 Salesforce Q1 Review</td>
+              <td>Q1 progress and action plan, covering projects, support, financials, risks, and roadmap. Presented by: Devendrappa, IT Project Manager, May 2025.</td>
+              <td><a href="assets/html_pages/Review%20PPT.html" class="document-link" target="_blank" rel="noopener">View Document</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="copyright">© 2025 Devendrappa. All rights reserved.</div>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+      document.querySelectorAll('.section-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      document.querySelector(`button[onclick="showSection('${sectionId}')"]`).classList.add('active');
+    }
+
+    function handleQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      const section = params.get('section');
+      const validSections = [
+        'project-documents',
+        'communication',
+        'team-management',
+        'technical-docs',
+        'governance-compliance',
+        'closure-handover'
+      ];
+      if (section && validSections.includes(section)) {
+        showSection(section);
+      } else {
+        showSection('project-documents');
+      }
+    }
+
+    window.onload = handleQueryParams;
+
+    document.querySelectorAll('.section-btn').forEach(button => {
+      button.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const onclick = button.getAttribute('onclick');
+          const match = onclick.match(/'([^']+)'/)[1];
+          showSection(match);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
