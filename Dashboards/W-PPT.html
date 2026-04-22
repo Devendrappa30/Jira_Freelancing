@@ -1,0 +1,323 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waterfall Project Management Metrics Presentation</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .slide { 
+      display: none; 
+      height: 100vh; 
+      flex-direction: column; 
+      justify-content: center; 
+      align-items: center; 
+      border: 4px solid #4B5EAA; /* Added border to slides */
+      border-radius: 10px; 
+      margin: 10px; 
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+    }
+    .slide.active { display: flex; }
+    canvas { 
+      max-width: 80%; 
+      max-height: 60%; 
+      border: 3px solid #2D3748; /* Added border to charts */
+      border-radius: 8px; 
+      padding: 10px; 
+      background-color: #F7FAFC; /* Light background for contrast */
+    }
+    .nav-buttons { 
+      position: fixed; 
+      bottom: 20px; 
+      width: 100%; 
+      text-align: center; 
+    }
+    h2 { 
+      font-size: 2.5rem; /* Larger title for highlighting */
+      font-weight: bold; 
+      color: #1A202C; /* Darker color for contrast */
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle highlight effect */
+    }
+    p { 
+      font-size: 1.25rem; 
+      color: #4A5568; 
+    }
+  </style>
+</head>
+<body class="bg-gray-200">
+  <!-- Slide 1: Gantt Chart -->
+  <div id="slide1" class="slide active bg-white p-6">
+    <h2 class="mb-4">Gantt Chart: Software Project Timeline</h2>
+    <p class="mb-4">Tracks project phases, dependencies, and milestone progress to ensure schedule adherence.</p>
+    <canvas id="ganttChart"></canvas>
+  </div>
+
+  <!-- Slide 2: Budget Burndown -->
+  <div id="slide2" class="slide bg-white p-6">
+    <h2 class="mb-4">Budget Burndown: $500,000 Project</h2>
+    <p class="mb-4">Monitors spending against the planned budget, highlighting cost variances.</p>
+    <canvas id="burndownChart"></canvas>
+  </div>
+
+  <!-- Slide 3: Progress Bar Chart -->
+  <div id="slide3" class="slide bg-white p-6">
+    <h2 class="mb-4">Milestone Progress Overview</h2>
+    <p class="mb-4">Visualizes the completion status of key project milestones.</p>
+    <canvas id="progressChart"></canvas>
+  </div>
+
+  <!-- Slide 4: Quality Metrics -->
+  <div id="slide4" class="slide bg-white p-6">
+    <h2 class="mb-4">Quality Metrics: Test Case Pass Rates</h2>
+    <p class="mb-4">Displays quality of deliverables across project phases, ensuring high standards.</p>
+    <canvas id="qualityChart"></canvas>
+  </div>
+
+  <!-- Slide 5: Pie Chart -->
+  <div id="slide5" class="slide bg-white p-6">
+    <h2 class="mb-4">Risk Distribution by Category</h2>
+    <p class="mb-4">Shows the distribution of risks (mitigated, active, potential) to highlight proactive management.</p>
+    <canvas id="riskChart"></canvas>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="nav-buttons">
+    <button onclick="prevSlide()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg mr-2 hover:bg-indigo-700">Previous</button>
+    <button onclick="nextSlide()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">Next</button>
+  </div>
+
+  <script>
+    // Slide navigation
+    let currentSlide = 1;
+    const totalSlides = 5;
+    function showSlide(slideNum) {
+      document.querySelectorAll('.slide').forEach(slide => slide.classList.remove('active'));
+      document.getElementById(`slide${slideNum}`).classList.add('active');
+      currentSlide = slideNum;
+    }
+    function nextSlide() {
+      if (currentSlide < totalSlides) showSlide(currentSlide + 1);
+    }
+    function prevSlide() {
+      if (currentSlide > 1) showSlide(currentSlide - 1);
+    }
+
+    // Gantt Chart (Slide 1)
+    new Chart(document.getElementById('ganttChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Planning', 'Design', 'Development', 'Testing', 'Deployment'],
+        datasets: [{
+          label: 'Duration (Weeks)',
+          data: [4, 6, 12, 8, 4],
+          backgroundColor: '#3B82F6', /* Vibrant blue */
+          borderColor: '#1E40AF', /* Darker border */
+          borderWidth: 2
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        scales: { x: { title: { display: true, text: 'Weeks', font: { size: 16 } } } },
+        plugins: { 
+          title: { display: true, text: 'Project Timeline', font: { size: 20 } },
+          tooltip: { enabled: true }
+        },
+        animation: {
+          onComplete: () => {
+            document.querySelector('#ganttChart').style.transition = 'transform 0.2s';
+          }
+        },
+        onHover: (event, chartElement) => {
+          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+          if (chartElement[0]) {
+            event.native.target.style.transform = 'scale(1.02)'; /* Subtle zoom on hover */
+          } else {
+            event.native.target.style.transform = 'scale(1)';
+          }
+        }
+      }
+    });
+
+    // Budget Burndown (Slide 2)
+    new Chart(document.getElementById('burndownChart'), {
+      type: 'line',
+      data: {
+        labels: ['Week 1', 'Week 5', 'Week 10', 'Week 15', 'Week 20'],
+        datasets: [{
+          label: 'Remaining Budget ($)',
+          data: [500000, 450000, 350000, 200000, 100000],
+          borderColor: '#EF4444', /* Vibrant red */
+          backgroundColor: 'rgba(239, 68, 68, 0.2)',
+          borderWidth: 3,
+          pointBackgroundColor: '#B91C1C', /* Darker points */
+          pointBorderWidth: 2
+        }]
+      },
+      options: {
+        scales: { y: { title: { display: true, text: 'Budget ($)', font: { size: 16 } } } },
+        plugins: { 
+          title: { display: true, text: 'Budget Burndown', font: { size: 20 } },
+          tooltip: { enabled: true }
+        },
+        animation: {
+          onComplete: () => {
+            document.querySelector('#burndownChart').style.transition = 'transform 0.2s';
+          }
+        },
+        onHover: (event, chartElement) => {
+          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+          if (chartElement[0]) {
+            event.native.target.style.transform = 'scale(1.02)';
+          } else {
+            event.native.target.style.transform = 'scale(1)';
+          }
+        }
+      }
+    });
+
+    // Progress Bar Chart (Slide 3)
+    new Chart(document.getElementById('progressChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Requirement Analysis', 'System Design', 'Coding', 'Testing', 'Deployment'],
+        datasets: [{
+          label: 'Completion (%)',
+          data: [100, 90, 70, 40, 10],
+          backgroundColor: '#10B981', /* Vibrant green */
+          borderColor: '#047857', /* Darker border */
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: { y: { max: 100, title: { display: true, text: 'Completion (%)', font: { size: 16 } } } },
+        plugins: { 
+          title: { display: true, text: 'Milestone Progress', font: { size: 20 } },
+          tooltip: { enabled: true }
+        },
+        animation: {
+          onComplete: () => {
+            document.querySelector('#progressChart').style.transition = 'transform 0.2s';
+          }
+        },
+        onHover: (event, chartElement) => {
+          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+          if (chartElement[0]) {
+            event.native.target.style.transform = 'scale(1.02)';
+          } else {
+            event.native.target.style.transform = 'scale(1)';
+          }
+        }
+      }
+    });
+
+    // Quality Metrics (Slide 4)
+    new Chart(document.getElementById('qualityChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Unit Testing', 'Integration Testing', 'System Testing'],
+        datasets: [{
+          label: 'Pass Rate (%)',
+          data: [95, 90, 85],
+          backgroundColor: '#8B5CF6', /* Vibrant purple */
+          borderColor: '#5B21B6', /* Darker border */
+          borderWidth: 2
+        }]
+      },
+      options: {
+        scales: { y: { max: 100, title: { display: true, text: 'Pass Rate (%)', font: { size: 16 } } } },
+        plugins: { 
+          title: { display: true, text: 'Test Case Pass Rates', font: { size: 20 } },
+          tooltip: { enabled: true }
+        },
+        animation: {
+          onComplete: () => {
+            document.querySelector('#qualityChart').style.transition = 'transform 0.2s';
+          }
+        },
+        onHover: (event, chartElement) => {
+          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+          if (chartElement[0]) {
+            event.native.target.style.transform = 'scale(1.02)';
+          } else {
+            event.native.target.style.transform = 'scale(1)';
+          }
+        }
+      }
+    });
+
+    // Risk Distribution Pie Chart (Slide 5)
+    new Chart(document.getElementById('riskChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Mitigated', 'Active', 'Potential'],
+        datasets: [{
+          data: [60, 25, 15],
+          backgroundColor: ['#34D399', '#F87171', '#FBBF24'], /* Vibrant colors */
+          borderColor: ['#059669', '#B91C1C', '#D97706'], /* Darker borders */
+          borderWidth: 2
+        }]
+      },
+      options: {
+        plugins: { 
+          title: { display: true, text: 'Risk Distribution', font: { size: 20 } },
+          tooltip: { enabled: true }
+        },
+        animation: {
+          onComplete: () => {
+            document.querySelector('#riskChart').style.transition = 'transform 0.2s';
+          }
+        },
+        onHover: (event, chartElement) => {
+          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+          if (chartElement[0]) {
+            event.native.target.style.transform = 'scale(1.02)';
+          } else {
+            event.native.target.style.transform = 'scale(1)';
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

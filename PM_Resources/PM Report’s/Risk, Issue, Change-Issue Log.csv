@@ -1,0 +1,5 @@
+Issue ID,Issue Description,Impact,Reported Date,Owner,Resolution Plan,Status
+I001,Testing environment not accessible.,High,25-Mar-2025,Salesforce Admin,"Troubleshoot access settings, escalate if needed.",Open
+I002,Data inconsistencies found after migration.,High,26-Mar-2025,Data Migration Lead,"Identify root cause, re-run validation checks.",Open
+I003,API integration with ERP is failing.,High,27-Mar-2025,Integration Developer,"Debug API configurations, check middleware logs.",Open
+I004,Users facing login issues in UAT environment.,Medium,28-Mar-2025,QA Engineer,"Reset access, validate user permissions.",Open

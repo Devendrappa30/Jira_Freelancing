@@ -1,0 +1,5 @@
+Change ID,Change Description,Impact,Requested By,Approval Status,Implementation Date,Owner
+C001,Additional validation rules required for Opportunity object.,Medium,Sales Team,Approved,30-Mar-2025,Salesforce Consultant
+C002,Modify data migration strategy due to unexpected data formats.,High,Data Migration Lead,Approved,02-Apr-2025,Data Migration Lead
+C003,Extend UAT by one week for additional user feedback.,High,Business Analyst,Pending,TBD,QA Lead
+C004,New security roles required for different departments.,Medium,IT Security Team,Approved,05-Apr-2025,Security Architect

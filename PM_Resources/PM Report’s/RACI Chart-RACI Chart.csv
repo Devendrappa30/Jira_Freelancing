@@ -1,0 +1,17 @@
+R - Responsible,Completes the deliverable or task.,,,,,
+A - Accountable,Makes final decisions and signs off on task completion. Only 1 per task. ,,,,,
+C - Consulted,"An advisor, stakeholder, or subject matter expert who offers guidance before an action is taken.",,,,,
+I - Informed,Kept up to date on decisions made.,,,,,
+Task/Activity,Product Owner (PO),Scrum Master (SM),Development Team (DT),QA Team,Stakeholders,Executive Sponsor
+"PHASE 1
+Task/Deliverable/ Activity",,,,,,
+,,,,,,
+Define Product Backlog,R,A,C,I,C,I
+Sprint Planning,A,R,C,C,I,I
+Daily Stand-up,I,R,A,I,I,I
+Develop User Stories,C,I,R,I,I,I
+Code Review,I,I,A,R,I,I
+Testing and QA,I,I,C,R,I,I
+Sprint Review,A,R,C,C,R,I
+Sprint Retrospective,I,R,A,I,I,I
+Release Planning,A,R,C,C,I,R

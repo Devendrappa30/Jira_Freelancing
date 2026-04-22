@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metrics, Reports, and Dashboards Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #f8fafc; color: #1e3a8a; }
+    .container {
+      width: 94%;
+      max-width: 1200px;
+      margin: 30px auto 20px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(30, 58, 138, 0.11);
+      padding: 32px 18px 18px 18px;
+    }
+    .section-toggle {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .section-toggle button {
+      padding: 12px 32px;
+      font-size: 1.08em;
+      background-color: #2563EB;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .section-toggle button.active {
+      background-color: #F59E0B;
+      color: #fff;
+    }
+    .section-toggle button:hover:not(.active) {
+      background-color: #FBBF24;
+      color: #003087;
+    }
+    h1 {
+      font-size: 2.5em;
+      color: #1E3A8A;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .section { display: none; }
+    .section.active { display: block; }
+    /* Short description formatting */
+    .desc-block {
+      margin-bottom: 28px;
+    }
+    .desc-title {
+      color: #2563EB;
+      font-size: 1.22em;
+      font-weight: 700;
+      margin-bottom: 2px;
+      display: block;
+    }
+    .desc-text {
+      color: #1e3a8a;
+      font-size: 1.05em;
+      font-weight: 500;
+      margin-bottom: 12px;
+      margin-left: 0;
+      display: block;
+    }
+    .subsection-desc {
+      font-size: 1em;
+      color: #2563eb;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .collapsible-header {
+      background: #e0f2fe;
+      cursor: pointer;
+      border-radius: 8px;
+      margin-top: 18px;
+      margin-bottom: 0;
+      padding: 18px 18px 16px 18px;
+      font-size: 1.18em;
+      font-weight: 700;
+      color: #1e3a8a;
+      box-shadow: 0 2px 8px #2563eb18;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .collapsible-header:hover { background: #bfdbfe; }
+    .collapsible-content { margin-bottom: 18px; }
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      margin-top: 1.2em;
+    }
+    @media (min-width: 700px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1100px) {
+      .card-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .metric-card, .report-card {
+      background: #fff;
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 16px rgba(59,130,246,0.08), 0 1.5px 5px rgba(30,58,138,0.03);
+      padding: 1.35rem 1.35rem 1.1rem 1.35rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border-left: 5px solid #60a5fa;
+    }
+    .metric-card:hover, .report-card:hover {
+      transform: translateY(-4px) scale(1.015);
+      box-shadow: 0 10px 28px rgba(59, 130, 246, 0.13);
+      background: #f1f5f9;
+    }
+    .metric-title, .report-title {
+      color: #1e3a8a;
+      font-size: 1.1em;
+      font-weight: 700;
+      margin-bottom: 0.2em;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .metric-desc, .report-desc {
+      color: #2563eb;
+      font-size: 0.97em;
+      margin-left: 1.7em;
+      margin-top: 0.05em;
+      margin-bottom: 0.1em;
+    }
+    .metric-icon, .report-icon {
+      font-size: 1.2em;
+      margin-right: 0.5em;
+      color: #38bdf8;
+    }
+    .dashboard-link {
+      display: block;
+      font-size: 1.08em;
+      color: #1D4ED8;
+      text-decoration: none;
+      margin: 15px 0;
+      padding: 11px 22px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      font-weight: 600;
+      border: 2px solid #60a5fa;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      text-align: center;
+      width: 100%;
+      max-width: 440px;
+    }
+    .dashboard-link:hover {
+      background: #e0f2fe;
+      color: #f59e0b;
+      border: 2px solid #f59e0b;
+    }
+    .copyright {
+      font-size: 0.97em;
+      color: #1E3A8A;
+      text-align: center;
+      margin-top: 28px;
+      padding-top: 10px;
+      border-top: 1px solid #FBBF24;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Metrics, Reports, and Dashboards Hub</h1>
+    <div class="section-toggle" role="tablist">
+      <button class="section-btn active" onclick="showSection('metrics')">Metrics</button>
+      <button class="section-btn" onclick="showSection('reports')">Reports</button>
+      <button class="section-btn" onclick="showSection('dashboards')">Dashboards</button>
+    </div>
+
+    <!-- METRICS SECTION -->
+    <div id="metrics" class="section active">
+      <div class="desc-block">
+        <span class="desc-title">Metrics</span>
+        <span class="desc-text">Key performance indicators and quantitative measures for tracking project progress and outcomes.</span>
+      </div>
+      <!-- Waterfall Metrics -->
+      <div>
+        <div class="collapsible-header" onclick="expandOnly('metrics-waterfall', 'metrics')">Waterfall Metrics</div>
+        <div id="metrics-waterfall" class="collapsible-content">
+          <span class="desc-text mb-4">Metrics for Waterfall projects, focusing on phase completion rates and milestone achievements.</span>
+          <div class="card-grid">
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">📐</span>Requirements Stability Index</div><div class="metric-desc">How stable project requirements are, ensuring minimal changes.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">⏱️</span>Planned vs Actual Effort</div><div class="metric-desc">Compares estimated effort to actual effort spent on tasks.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">📅</span>Schedule Variance</div><div class="metric-desc">Tracks deviations from the planned schedule for timely delivery.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">💰</span>Cost Variance (EVM)</div><div class="metric-desc">Measures cost differences using Earned Value Management.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🚦</span>Phase Exit Criteria Compliance</div><div class="metric-desc">Ensures each project phase meets completion criteria.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🐞</span>Defect Density</div><div class="metric-desc">Counts defects per unit of code.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🧪</span>Test Coverage</div><div class="metric-desc">Percentage of code or requirements covered by tests.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🔗</span>Requirements Traceability Matrix</div><div class="metric-desc">Links requirements to deliverables to ensure coverage.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🔥</span>Risk Burndown</div><div class="metric-desc">Tracks the reduction of project risks over time.</div></div>
+          </div>
+        </div>
+        <div class="collapsible-header" onclick="expandOnly('metrics-agile', 'metrics')">Agile (Scrum) Metrics</div>
+        <div id="metrics-agile" class="collapsible-content" style="display:none">
+          <span class="desc-text mb-4">Metrics for Agile projects, emphasizing sprint performance, adaptability, and team collaboration.</span>
+          <div class="card-grid">
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">⚡</span>Sprint Velocity</div><div class="metric-desc">Measures work (story points) completed per sprint.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">📉</span>Burndown/Burnup Charts</div><div class="metric-desc">Visualizes work completed vs. remaining in a sprint.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">✅</span>Story Completion Ratio</div><div class="metric-desc">Percentage of planned user stories completed in a sprint.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">👥</span>Team Capacity Utilization</div><div class="metric-desc">How effectively team capacity is used.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🎯</span>Sprint Goal Success Rate</div><div class="metric-desc">Percentage of sprints achieving their goals.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🐞</span>Defect Leakage Rate</div><div class="metric-desc">Percentage of defects found after release.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🚨</span>Escaped Defects</div><div class="metric-desc">Number of defects that reach production.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🔁</span>Sprint Predictability</div><div class="metric-desc">Consistency of delivering planned work across sprints.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🔄</span>Retrospective Action Closure Rate</div><div class="metric-desc">Percentage of retrospective actions completed.</div></div>
+          </div>
+        </div>
+        <div class="collapsible-header" onclick="expandOnly('metrics-kanban', 'metrics')">Kanban / IT Support Metrics</div>
+        <div id="metrics-kanban" class="collapsible-content" style="display:none">
+          <span class="desc-text mb-4">Metrics for Kanban/IT Support projects, focusing on continuous flow, ticket throughput, and service responsiveness.</span>
+          <div class="card-grid">
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">⏳</span>Cycle Time</div><div class="metric-desc">Time for a task to move from start to completion.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">⏱️</span>Lead Time</div><div class="metric-desc">Time from task creation to completion.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🔢</span>Throughput</div><div class="metric-desc">Number of tasks completed in a given period.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">📝</span>WIP (Work In Progress)</div><div class="metric-desc">Number of tasks currently in progress.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🎫</span>SLA Adherence</div><div class="metric-desc">Percentage of tasks meeting service level agreements.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🛎️</span>MTTR (Mean Time to Resolve)</div><div class="metric-desc">Average time to resolve incidents.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🎯</span>First Call Resolution Rate</div><div class="metric-desc">Percentage of issues resolved on the first contact.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">📈</span>Incident Volume Trend</div><div class="metric-desc">Tracks the number of incidents over time.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🚨</span>Change Failure Rate</div><div class="metric-desc">Percentage of changes that fail in production.</div></div>
+          </div>
+        </div>
+        <div class="collapsible-header" onclick="expandOnly('metrics-xp', 'metrics')">Extreme Programming (XP) Metrics</div>
+        <div id="metrics-xp" class="collapsible-content" style="display:none">
+          <span class="desc-text mb-4">Metrics for XP projects, focusing on code quality, collaboration, and rapid feedback cycles.</span>
+          <div class="card-grid">
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">👥</span>Pair Programming Adoption Rate</div><div class="metric-desc">Percentage of coding tasks done in pairs.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🧪</span>Test Coverage (Unit Tests)</div><div class="metric-desc">Percentage of code covered by unit tests.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🐞</span>Defect Rate in Production</div><div class="metric-desc">Number of defects found in production.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">♻️</span>Refactoring Frequency</div><div class="metric-desc">How often code is refactored to improve quality.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🔗</span>Code Integration Frequency (CI/CD)</div><div class="metric-desc">How often code is integrated into the main branch.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">⭐</span>Customer Feedback Score</div><div class="metric-desc">Customer satisfaction with delivered features.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">📈</span>Sustainable Pace Indicator</div><div class="metric-desc">Measures if the team maintains a consistent work pace.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🧮</span>Number of Automated Tests</div><div class="metric-desc">Total number of automated tests in the codebase.</div></div>
+            <div class="metric-card"><div class="metric-title"><span class="metric-icon">🛠️</span>Time to Fix Broken Builds</div><div class="metric-desc">Time taken to resolve failed builds in CI/CD.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS SECTION -->
+    <div id="reports" class="section">
+      <div class="desc-block">
+        <span class="desc-title">Reports</span>
+        <span class="desc-text">Detailed analytical reports summarizing project performance, trends, and insights.</span>
+      </div>
+      <div>
+        <div class="collapsible-header" onclick="expandOnly('reports-waterfall', 'reports')">Waterfall Reports</div>
+        <div id="reports-waterfall" class="collapsible-content">
+          <span class="desc-text mb-4">Reports for Waterfall projects, emphasizing milestone tracking and documentation of each phase.</span>
+          <div class="card-grid">
+            <div class="report-card"><div class="report-title"><span class="report-icon">📋</span>Project Plan & Timeline Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔗</span>Requirements Traceability Matrix</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📝</span>Design Specification Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">💻</span>Development Progress Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🧪</span>Test Case Coverage Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🐞</span>Defect Summary Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🧱</span>Phase Gate Review Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🚀</span>Deployment/Release Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🛠️</span>Change Control Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">✅</span>Final Project Closure Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔥</span>Risk Register & Risk Heat Map</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔄</span>Change Impact Analysis Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">👥</span>Resource Utilization Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📚</span>Lessons Learned Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🤝</span>Stakeholder Engagement Report</div></div>
+          </div>
+        </div>
+        <div class="collapsible-header" onclick="expandOnly('reports-agile', 'reports')">Agile (Scrum) Reports</div>
+        <div id="reports-agile" class="collapsible-content" style="display:none">
+          <span class="desc-text mb-4">Reports for Agile projects, focusing on sprint reviews, team output, and continuous improvement.</span>
+          <div class="card-grid">
+            <div class="report-card"><div class="report-title"><span class="report-icon">📉</span>Sprint Burndown Chart</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🗂️</span>Product Backlog Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔎</span>Sprint Review Summary</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📈</span>Velocity Trend Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🗓️</span>Release Planning Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🚧</span>Impediment Log</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">☀️</span>Daily Standup Summary</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔄</span>Retrospective Action Items</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🐞</span>Defect/Bug Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">✅</span>Story Completion Rate</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔥</span>Risk Register</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🤝</span>Stakeholder Engagement Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📈</span>Continuous Improvement Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">👥</span>Resource Utilization Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔄</span>Change Impact Analysis Report</div></div>
+          </div>
+        </div>
+        <div class="collapsible-header" onclick="expandOnly('reports-kanban', 'reports')">Kanban / IT Support Reports</div>
+        <div id="reports-kanban" class="collapsible-content" style="display:none">
+          <span class="desc-text mb-4">Reports for Kanban/IT Support, highlighting ticket trends and service level adherence.</span>
+          <div class="card-grid">
+            <div class="report-card"><div class="report-title"><span class="report-icon">📋</span>Kanban Board Status</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔢</span>Throughput Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">⏳</span>Cycle Time Analysis</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">⛔</span>Blocked Tasks Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">⚠️</span>WIP Limit Breach Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📊</span>Lead Time Distribution</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🎫</span>SLA (Service Level Agreement) Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">⭐</span>Customer Satisfaction Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔍</span>Incident Root Cause Analysis</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">⏲️</span>Backlog Aging Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🚨</span>Major Incident Report (MIR)</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔀</span>Problem Management Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🗓️</span>Change Calendar Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📚</span>Knowledge Base Usage Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🧾</span>Service Request Volume by Type</div></div>
+          </div>
+        </div>
+        <div class="collapsible-header" onclick="expandOnly('reports-xp', 'reports')">Extreme Programming (XP) Reports</div>
+        <div id="reports-xp" class="collapsible-content" style="display:none">
+          <span class="desc-text mb-4">Reports for XP projects, focusing on code quality, integration, and ongoing improvements.</span>
+          <div class="card-grid">
+            <div class="report-card"><div class="report-title"><span class="report-icon">👥</span>Pair Programming Log</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🧪</span>Automated Test Coverage Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔗</span>Continuous Integration Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔁</span>Refactoring Activity Log</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🔍</span>Code Review Summary</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">⭐</span>Customer Feedback Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📄</span>Release Notes</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🛡️</span>Defect Prevention Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🗓️</span>Iteration Planning Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🛠️</span>Build Stability Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">💥</span>Test Failure Diagnostics Report</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">🚀</span>Deployment Log</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📊</span>Code Quality Metrics Summary</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">📚</span>Lessons Learned / Retrospective Summary</div></div>
+            <div class="report-card"><div class="report-title"><span class="report-icon">⚠️</span>Technical Debt Register</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARDS SECTION -->
+    <div id="dashboards" class="section">
+      <div class="desc-block">
+        <span class="desc-title">Dashboards</span>
+        <span class="desc-text">Interactive visualizations and real-time data displays for monitoring project status and trends by methodology.</span>
+      </div>
+      <div class="flex flex-col items-center space-y-6" style="margin-top:30px;">
+        <a href="Waterfall Project Dashboard.html" class="dashboard-link" target="_blank">View Waterfall Dashboard</a>
+        <a href="Agile_Dashboard.html" class="dashboard-link" target="_blank">View Agile Dashboard</a>
+        <a href="it_support_dashboard.html" class="dashboard-link" target="_blank">View IT Support Projects Dashboard</a>
+        <div class="dashboard-link text-gray-400 pointer-events-none">No dashboard available for XP methodology.</div>
+      </div>
+    </div>
+
+    <div class="copyright">© 2025 Devendrappa. All rights reserved.</div>
+  </div>
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+      document.querySelectorAll('.section-btn').forEach(btn => btn.classList.remove('active'));
+      const navIdx = {metrics:0,reports:1,dashboards:2};
+      document.querySelectorAll('.section-btn')[navIdx[sectionId]].classList.add('active');
+      document.getElementById(sectionId).classList.add('active');
+      window.scrollTo(0,0);
+    }
+    // Only one collapsible open at a time, per tab
+    function expandOnly(contentId, section) {
+      // Metrics
+      if(section === 'metrics') {
+        ['metrics-waterfall','metrics-agile','metrics-kanban','metrics-xp'].forEach(function(id){
+          var el = document.getElementById(id);
+          if (el) el.style.display = (id === contentId) ? "" : "none";
+        });
+      }
+      // Reports
+      if(section === 'reports') {
+        ['reports-waterfall','reports-agile','reports-kanban','reports-xp'].forEach(function(id){
+          var el = document.getElementById(id);
+          if (el) el.style.display = (id === contentId) ? "" : "none";
+        });
+      }
+    }
+  </script>
+</body>
+</html>

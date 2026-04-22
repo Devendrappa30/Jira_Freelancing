@@ -1,0 +1,1016 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Agile Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .health-indicator {
+            text-align: center;
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+        }
+        .health-green { background-color: #28A745; }
+        .health-yellow { background-color: #FFC107; }
+        .health-red { background-color: #DC3545; }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        select, input[type="file"] {
+            padding: 10px;
+            margin: 0 10px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive Agile Dashboard</h1>
+    <div class="controls">
+        <label for="sprintSelect">Select Sprint: </label>
+        <select id="sprintSelect" onchange="updateCharts()">
+            <option value="1">Sprint 1</option>
+            <option value="2">Sprint 2</option>
+            <option value="3">Sprint 3</option>
+            <option value="4">Sprint 4</option>
+        </select>
+        <label for="fileInput">Upload Data File: </label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(event)">
+        <button onclick="downloadCharts()">Download Charts as PNG</button>
+    </div>
+    <div class="dashboard">
+        <div class="chart-container">
+            <h2>Sprint Burndown</h2>
+            <canvas id="burndownChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Burnup Chart</h2>
+            <canvas id="burnupChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Sprint Report</h2>
+            <canvas id="sprintReportChart"></canvas>
+            <table id="sprintReportTable">
+                <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Task Status</h2>
+            <canvas id="taskStatusChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Risk Distribution</h2>
+            <canvas id="riskDistributionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Epic Burndown</h2>
+            <canvas id="epicBurndownChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Release Plan</h2>
+            <canvas id="releasePlanChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Control Chart</h2>
+            <canvas id="controlChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Average Age Report</h2>
+            <canvas id="averageAgeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Time Tracking Report</h2>
+            <canvas id="timeTrackingChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Time Sheet Report</h2>
+            <canvas id="timeSheetChart"></canvas>
+            <table id="timeSheetTable">
+                <thead><tr><th>Member</th><th>Hours Logged</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Created vs Resolved Issues</h2>
+            <canvas id="createdVsResolvedChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Workload Pie Chart</h2>
+            <canvas id="workloadPieChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Issue Type Distribution</h2>
+            <canvas id="pieChartReport"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Version Workload</h2>
+            <canvas id="versionWorkloadChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Team Velocity</h2>
+            <canvas id="velocityChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Recently Created Issues</h2>
+            <canvas id="recentlyCreatedChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Cumulative Flow Diagram</h2>
+            <canvas id="cumulativeFlowChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Resolution Time Report</h2>
+            <canvas id="resolutionTimeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Version Report</h2>
+            <canvas id="versionReportChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Group By Priority</h2>
+            <canvas id="groupByChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Epic Report</h2>
+            <canvas id="epicReportChart"></canvas>
+            <table id="epicReportTable">
+                <thead><tr><th>Epic</th><th>Completed</th><th>Remaining</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Time Since Issues</h2>
+            <canvas id="timeSinceIssuesChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Release Burndown</h2>
+            <canvas id="releaseBurndownChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Sprint Health</h2>
+            <div id="healthIndicator" class="health-indicator"></div>
+        </div>
+        <div class="chart-container">
+            <h2>Days in Column</h2>
+            <canvas id="daysInColumnChart"></canvas>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell !== null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) => row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length);
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        // Mock data for sprints, epics, versions;
+        const sprintData = {
+            1: {
+                burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [50, 45, 38, 30, 20, 10, 0], ideal: [50, 42.86, 35.71, 28.57, 21.43, 14.29, 0] },
+                burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [0, 5, 12, 20, 30, 40, 50] },
+                sprintReport: { planned: 50, completed: 45, carriedOver: 5 },
+                tasks: { todo: 15, inProgress: 10, done: 25 },
+                risks: { low: 10, medium: 5, high: 3 },
+                epicBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [100, 80, 60, 40] },
+                velocity: 30,
+                cycleTime: [{ x: 'Task 1', y: 3 }, { x: 'Task 2', y: 5 }, { x: 'Task 3', y: 2 }, { x: 'Task 4', y: 7 }],
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], points: [20, 15, 25, 10], hours: [30, 25, 35, 20] },
+                health: 'Green',
+                averageAge: { bug: 5, story: 10, task: 7 },
+                timeTracking: { estimated: 100, logged: 90 },
+                createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [5, 3, 4, 2], resolved: [4, 4, 3, 5] },
+                issueTypes: { story: 20, bug: 10, task: 15 },
+                versionWorkload: { v1: 30, v2: 20 },
+                recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [5, 3, 4, 2] },
+                cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], todo: [20, 18, 15, 10], inProgress: [10, 12, 15, 10], done: [5, 10, 15, 25] },
+                resolutionTime: { bug: 4, story: 6, task: 3 },
+                versionReport: { v1: { completed: 25, remaining: 5 }, v2: { completed: 15, remaining: 5 } },
+                groupByPriority: { low: 20, medium: 15, high: 10 },
+                epicReport: { epic1: { completed: 30, remaining: 20 }, epic2: { completed: 20, remaining: 30 } },
+                timeSinceIssues: { statuses: ['Open', 'In Progress', 'Done'], days: [10, 5, 2] },
+                releaseBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [200, 150, 100, 50] },
+                daysInColumn: { todo: 3, inProgress: 5, done: 1 }
+            },
+            2: {
+                burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [60, 55, 45, 35, 25, 15, 5], ideal: [60, 51.43, 42.86, 34.29, 25.71, 17.14, 0] },
+                burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [0, 5, 15, 25, 35, 45, 55] },
+                sprintReport: { planned: 60, completed: 50, carriedOver: 10 },
+                tasks: { todo: 12, inProgress: 8, done: 30 },
+                risks: { low: 8, medium: 7, high: 2 },
+                epicBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [80, 60, 40, 20] },
+                velocity: 35,
+                cycleTime: [{ x: 'Task 1', y: 4 }, { x: 'Task 2', y: 6 }, { x: 'Task 3', y: 3 }, { x: 'Task 4', y: 8 }],
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], points: [18, 20, 22, 12], hours: [28, 30, 32, 18] },
+                health: 'Yellow',
+                averageAge: { bug: 6, story: 12, task: 8 },
+                timeTracking: { estimated: 120, logged: 100 },
+                createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [6, 4, 5, 3], resolved: [5, 5, 4, 6] },
+                issueTypes: { story: 25, bug: 8, task: 12 },
+                versionWorkload: { v1: 25, v2: 25 },
+                recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [6, 4, 5, 3] },
+                cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], todo: [18, 15, 12, 8], inProgress: [12, 15, 12, 10], done: [10, 15, 20, 30] },
+                resolutionTime: { bug: 5, story: 7, task: 4 },
+                versionReport: { v1: { completed: 20, remaining: 10 }, v2: { completed: 20, remaining: 5 } },
+                groupByPriority: { low: 15, medium: 20, high: 8 },
+                epicReport: { epic1: { completed: 35, remaining: 15 }, epic2: { completed: 25, remaining: 25 } },
+                timeSinceIssues: { statuses: ['Open', 'In Progress', 'Done'], days: [12, 6, 3] },
+                releaseBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [180, 130, 80, 40] },
+                daysInColumn: { todo: 4, inProgress: 6, done: 2 }
+            }
+        };
+
+        // Store processed file data
+        let fileBasedData = {};
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const filename = file.name;
+            const reader = new FileReader();
+            
+            gk_isXlsx = filename.endsWith('.xlsx') || filename.endsWith('.xls');
+            gk_xlsxFileLookup[filename] = true;
+
+            reader.onload = function(e) {
+                gk_fileData[filename] = gk_isXlsx ? e.target.result.split(',')[1] : e.target.result;
+                const csvData = loadFileData(filename);
+                if (csvData) {
+                    processCsvData(csvData, filename);
+                    updateCharts();
+                } else {
+                    alert('Error processing file. Please check the format and try again.');
+                }
+            };
+            
+            if (gk_isXlsx) {
+                reader.readAsDataURL(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+
+        // Process CSV data to match sprintData structure
+        function processCsvData(csv, filename) {
+            const lines = csv.split('\n').map(line => line.split(','));
+            const headers = lines[0];
+            const data = lines.slice(1).filter(row => row.some(filledCell));
+
+            fileBasedData = {};
+            const sprintIndex = headers.indexOf('Sprint');
+            const dayIndex = headers.indexOf('Day');
+            const pointsIndex = headers.indexOf('Story Points');
+            const statusIndex = headers.indexOf('Status');
+            const memberIndex = headers.indexOf('Member');
+            const hoursIndex = headers.indexOf('Hours');
+            const typeIndex = headers.indexOf('Issue Type');
+            const priorityIndex = headers.indexOf('Priority');
+            const epicIndex = headers.indexOf('Epic');
+            const riskIndex = headers.indexOf('Risk');
+
+            data.forEach(row => {
+                const sprint = row[sprintIndex] || '1';
+                if (!fileBasedData[sprint]) {
+                    fileBasedData[sprint] = {
+                        burndown: { days: [], points: [], ideal: [] },
+                        burnup: { days: [], points: [] },
+                        sprintReport: { planned: 0, completed: 0, carriedOver: 0 },
+                        tasks: { todo: 0, inProgress: 0, done: 0 },
+                        risks: { low: 0, medium: 0, high: 0 },
+                        epicBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [100, 80, 60, 40] },
+                        velocity: 0,
+                        cycleTime: [],
+                        workload: { members: [], points: [], hours: [] },
+                        health: 'Green',
+                        averageAge: { bug: 0, story: 0, task: 0 },
+                        timeTracking: { estimated: 0, logged: 0 },
+                        createdVsResolved: { days: [], created: [], resolved: [] },
+                        issueTypes: { story: 0, bug: 0, task: 0 },
+                        versionWorkload: { v1: 0, v2: 0 },
+                        recentlyCreated: { days: [], count: [] },
+                        cumulativeFlow: { days: [], todo: [], inProgress: [], done: [] },
+                        resolutionTime: { bug: 0, story: 0, task: 0 },
+                        versionReport: { v1: { completed: 0, remaining: 0 }, v2: { completed: 0, remaining: 0 } },
+                        groupByPriority: { low: 0, medium: 0, high: 0 },
+                        epicReport: { epic1: { completed: 0, remaining: 0 }, epic2: { completed: 0, remaining: 0 } },
+                        timeSinceIssues: { statuses: ['Open', 'In Progress', 'Done'], days: [0, 0, 0] },
+                        releaseBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [200, 150, 100, 50] },
+                        daysInColumn: { todo: 0, inProgress: 0, done: 0 }
+                    };
+                }
+
+                const day = row[dayIndex] || 'Day ' + (fileBasedData[sprint].burndown.days.length + 1);
+                const points = parseFloat(row[pointsIndex]) || 0;
+                if (!fileBasedData[sprint].burndown.days.includes(day)) {
+                    fileBasedData[sprint].burndown.days.push(day);
+                    fileBasedData[sprint].burndown.points.push(points);
+                    fileBasedData[sprint].burnup.days.push(day);
+                    fileBasedData[sprint].burnup.points.push(points);
+                    fileBasedData[sprint].cumulativeFlow.days.push(day);
+                    fileBasedData[sprint].createdVsResolved.days.push(day);
+                    fileBasedData[sprint].recentlyCreated.days.push(day);
+                }
+
+                const status = row[statusIndex] || 'To Do';
+                if (status.toLowerCase().includes('todo')) {
+                    fileBasedData[sprint].tasks.todo += 1;
+                    fileBasedData[sprint].timeSinceIssues.days[0] += 1;
+                } else if (status.toLowerCase().includes('progress')) {
+                    fileBasedData[sprint].tasks.inProgress += 1;
+                    fileBasedData[sprint].timeSinceIssues.days[1] += 1;
+                } else if (status.toLowerCase().includes('done')) {
+                    fileBasedData[sprint].tasks.done += 1;
+                    fileBasedData[sprint].timeSinceIssues.days[2] += 1;
+                }
+
+                const risk = row[riskIndex] || 'Medium';
+                if (risk.toLowerCase().includes('low')) fileBasedData[sprint].risks.low += 1;
+                else if (risk.toLowerCase().includes('high')) fileBasedData[sprint].risks.high += 1;
+                else fileBasedData[sprint].risks.medium += 1;
+
+                const member = row[memberIndex] || 'Unknown';
+                const hours = parseFloat(row[hoursIndex]) || 0;
+                if (!fileBasedData[sprint].workload.members.includes(member)) {
+                    fileBasedData[sprint].workload.members.push(member);
+                    fileBasedData[sprint].workload.points.push(points);
+                    fileBasedData[sprint].workload.hours.push(hours);
+                }
+
+                const type = row[typeIndex] || 'Task';
+                if (type.toLowerCase().includes('story')) fileBasedData[sprint].issueTypes.story += 1;
+                else if (type.toLowerCase().includes('bug')) fileBasedData[sprint].issueTypes.bug += 1;
+                else fileBasedData[sprint].issueTypes.task += 1;
+
+                const priority = row[priorityIndex] || 'Medium';
+                if (priority.toLowerCase().includes('low')) fileBasedData[sprint].groupByPriority.low += 1;
+                else if (priority.toLowerCase().includes('high')) fileBasedData[sprint].groupByPriority.high += 1;
+                else fileBasedData[sprint].groupByPriority.medium += 1;
+
+                fileBasedData[sprint].sprintReport.planned += points;
+                if (status.toLowerCase().includes('done')) fileBasedData[sprint].sprintReport.completed += points;
+                else fileBasedData[sprint].sprintReport.carriedOver += points;
+            });
+
+            Object.keys(fileBasedData).forEach(sprint => {
+                const total = fileBasedData[sprint].burndown.points[0] || 0;
+                fileBasedData[sprint].burndown.ideal = fileBasedData[sprint].burndown.days.map((_, i) => total - (total / fileBasedData[sprint].burndown.days.length) * i);
+                fileBasedData[sprint].velocity = fileBasedData[sprint].sprintReport.completed;
+                fileBasedData[sprint].cumulativeFlow.todo = fileBasedData[sprint].burndown.days.map(() => fileBasedData[sprint].tasks.todo);
+                fileBasedData[sprint].cumulativeFlow.inProgress = fileBasedData[sprint].burndown.days.map(() => fileBasedData[sprint].tasks.inProgress);
+                fileBasedData[sprint].cumulativeFlow.done = fileBasedData[sprint].burndown.days.map(() => fileBasedData[sprint].tasks.done);
+            });
+        }
+
+        // Chart instances
+        let charts = {};
+
+        // Initialize charts
+        function initializeCharts(sprintId = '1') {
+            const data = fileBasedData[sprintId] || sprintData[sprintId] || sprintData['1'];
+
+            // 1. Sprint Burndown
+            if (charts.burndownChart) charts.burndownChart.destroy();
+            charts.burndownChart = new Chart(document.getElementById('burndownChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.burndown.days,
+                    datasets: [
+                        { label: 'Remaining Story Points', data: data.burndown.points, borderColor: '#FF5733', fill: false, tension: 0.1 },
+                        { label: 'Ideal Burndown', data: data.burndown.ideal, borderColor: '#888', borderDash: [5, 5], fill: false }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                        x: { title: { display: true, text: 'Sprint Days' } }
+                    }
+                }
+            });
+
+            // 2. Burnup Chart
+            if (charts.burnupChart) charts.burnupChart.destroy();
+            charts.burnupChart = new Chart(document.getElementById('burnupChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.burnup.days,
+                    datasets: [
+                        { label: 'Completed Story Points', data: data.burnup.points, borderColor: '#28A745', fill: false, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                        x: { title: { display: true, text: 'Sprint Days' } }
+                    }
+                }
+            });
+
+            // 3. Sprint Report
+            if (charts.sprintReportChart) charts.sprintReportChart.destroy();
+            charts.sprintReportChart = new Chart(document.getElementById('sprintReportChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Planned', 'Completed', 'Carried Over'],
+                    datasets: [{
+                        label: 'Story Points',
+                        data: [data.sprintReport.planned, data.sprintReport.completed, data.sprintReport.carriedOver],
+                        backgroundColor: ['#007BFF', '#28A745', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } }
+                    }
+                }
+            });
+            const sprintTable = document.getElementById('sprintReportTable').getElementsByTagName('tbody')[0];
+            sprintTable.innerHTML = `
+                <tr><td>Planned</td><td>${data.sprintReport.planned}</td></tr>
+                <tr><td>Completed</td><td>${data.sprintReport.completed}</td></tr>
+                <tr><td>Carried Over</td><td>${data.sprintReport.carriedOver}</td></tr>
+            `;
+
+            // 4. Task Status
+            if (charts.taskStatusChart) charts.taskStatusChart.destroy();
+            charts.taskStatusChart = new Chart(document.getElementById('taskStatusChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['To Do', 'In Progress', 'Done'],
+                    datasets: [{
+                        data: [data.tasks.todo, data.tasks.inProgress, data.tasks.done],
+                        backgroundColor: ['#FFCC00', '#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 5. Risk Distribution
+            if (charts.riskDistributionChart) charts.riskDistributionChart.destroy();
+            charts.riskDistributionChart = new Chart(document.getElementById('riskDistributionChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Low', 'Medium', 'High'],
+                    datasets: [{
+                        data: [data.risks.low, data.risks.medium, data.risks.high],
+                        backgroundColor: ['#28A745', '#FFC107', '#FF5733']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 6. Epic Burndown
+            if (charts.epicBurndownChart) charts.epicBurndownChart.destroy();
+            charts.epicBurndownChart = new Chart(document.getElementById('epicBurndownChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.epicBurndown.sprints,
+                    datasets: [
+                        { label: 'Remaining Story Points', data: data.epicBurndown.points, borderColor: '#FF5733', fill: false, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                        x: { title: { display: true, text: 'Sprints' } }
+                    }
+                }
+            });
+
+            // 7. Release Plan
+            if (charts.releasePlanChart) charts.releasePlanChart.destroy();
+            charts.releasePlanChart = new Chart(document.getElementById('releasePlanChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Version 1.0', 'Version 2.0'],
+                    datasets: [
+                        { label: 'Completed', data: [50, 20], backgroundColor: '#28A745' },
+                        { label: 'Remaining', data: [10, 30], backgroundColor: '#FF5733' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                        x: { title: { display: true, text: 'Releases' } }
+                    }
+                }
+            });
+
+            // 8. Control Chart
+            if (charts.controlChart) charts.controlChart.destroy();
+            charts.controlChart = new Chart(document.getElementById('controlChart').getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Cycle Time', data: data.cycleTime, backgroundColor: '#FF5733' },
+                        { label: 'Average', data: data.cycleTime.map(d => ({ x: d.x, y: 4.25 })), borderColor: '#888', borderDash: [5, 5], type: 'line' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Tasks' } },
+                        y: { beginAtZero: true, title: { display: true, text: 'Cycle Time (Days)' } }
+                    }
+                }
+            });
+
+            // 9. Average Age Report
+            if (charts.averageAgeChart) charts.averageAgeChart.destroy();
+            charts.averageAgeChart = new Chart(document.getElementById('averageAgeChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Bug', 'Story', 'Task'],
+                    datasets: [{
+                        label: 'Average Age (Days)',
+                        data: [data.averageAge.bug, data.averageAge.story, data.averageAge.task],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // 10. Time Tracking Report
+            if (charts.timeTrackingChart) charts.timeTrackingChart.destroy();
+            charts.timeTrackingChart = new Chart(document.getElementById('timeTrackingChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Estimated', 'Logged'],
+                    datasets: [{
+                        label: 'Hours',
+                        data: [data.timeTracking.estimated, data.timeTracking.logged],
+                        backgroundColor: ['#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } }
+                    }
+                }
+            });
+
+            // 11. Time Sheet Report
+            if (charts.timeSheetChart) charts.timeSheetChart.destroy();
+            charts.timeSheetChart = new Chart(document.getElementById('timeSheetChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.workload.members,
+                    datasets: [{
+                        label: 'Hours Logged',
+                        data: data.workload.hours,
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                        x: { title: { display: true, text: 'Team Members' } }
+                    }
+                }
+            });
+            const timeSheetTable = document.getElementById('timeSheetTable').getElementsByTagName('tbody')[0];
+            timeSheetTable.innerHTML = data.workload.members.map((m, i) => `<tr><td>${m}</td><td>${data.workload.hours[i]}</td></tr>`).join('');
+
+            // 12. Created vs Resolved Issues
+            if (charts.createdVsResolvedChart) charts.createdVsResolvedChart.destroy();
+            charts.createdVsResolvedChart = new Chart(document.getElementById('createdVsResolvedChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.createdVsResolved.days,
+                    datasets: [
+                        { label: 'Created', data: data.createdVsResolved.created, borderColor: '#FF5733', fill: false },
+                        { label: 'Resolved', data: data.createdVsResolved.resolved, borderColor: '#28A745', fill: false }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Issues' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // 13. Workload Pie Chart
+            if (charts.workloadPieChart) charts.workloadPieChart.destroy();
+            charts.workloadPieChart = new Chart(document.getElementById('workloadPieChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: data.workload.members,
+                    datasets: [{
+                        data: data.workload.points,
+                        backgroundColor: ['#FF5733', '#28A745', '#007BFF', '#FFC107']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 14. Issue Type Distribution
+            if (charts.pieChartReport) charts.pieChartReport.destroy();
+            charts.pieChartReport = new Chart(document.getElementById('pieChartReport').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Story', 'Bug', 'Task'],
+                    datasets: [{
+                        data: [data.issueTypes.story, data.issueTypes.bug, data.issueTypes.task],
+                        backgroundColor: ['#28A745', '#FF5733', '#007BFF']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 15. Version Workload
+            if (charts.versionWorkloadChart) charts.versionWorkloadChart.destroy();
+            charts.versionWorkloadChart = new Chart(document.getElementById('versionWorkloadChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Version 1.0', 'Version 2.0'],
+                    datasets: [{
+                        label: 'Story Points',
+                        data: [data.versionWorkload.v1, data.versionWorkload.v2],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } }
+                    }
+                }
+            });
+
+            // 16. Team Velocity
+            if (charts.velocityChart) charts.velocityChart.destroy();
+            charts.velocityChart = new Chart(document.getElementById('velocityChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(sprintData).map(id => `Sprint ${id}`),
+                    datasets: [{
+                        label: 'Story Points Completed',
+                        data: Object.values(sprintData).map(d => d.velocity),
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                        x: { title: { display: true, text: 'Sprints' } }
+                    }
+                }
+            });
+
+            // 17. Recently Created Issues
+            if (charts.recentlyCreatedChart) charts.recentlyCreatedChart.destroy();
+            charts.recentlyCreatedChart = new Chart(document.getElementById('recentlyCreatedChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.recentlyCreated.days,
+                    datasets: [{
+                        label: 'Issues Created',
+                        data: data.recentlyCreated.count,
+                        backgroundColor: '#FF5733'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Issues' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // 18. Cumulative Flow Diagram
+            if (charts.cumulativeFlowChart) charts.cumulativeFlowChart.destroy();
+            charts.cumulativeFlowChart = new Chart(document.getElementById('cumulativeFlowChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.cumulativeFlow.days,
+                    datasets: [
+                        { label: 'To Do', data: data.cumulativeFlow.todo, backgroundColor: '#FFCC00', fill: true },
+                        { label: 'In Progress', data: data.cumulativeFlow.inProgress, backgroundColor: '#007BFF', fill: true },
+                        { label: 'Done', data: data.cumulativeFlow.done, backgroundColor: '#28A745', fill: true }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tasks' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // 19. Resolution Time Report
+            if (charts.resolutionTimeChart) charts.resolutionTimeChart.destroy();
+            charts.resolutionTimeChart = new Chart(document.getElementById('resolutionTimeChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Bug', 'Story', 'Task'],
+                    datasets: [{
+                        label: 'Resolution Time (Days)',
+                        data: [data.resolutionTime.bug, data.resolutionTime.story, data.resolutionTime.task],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // 20. Version Report
+            if (charts.versionReportChart) charts.versionReportChart.destroy();
+            charts.versionReportChart = new Chart(document.getElementById('versionReportChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Version 1.0', 'Version 2.0'],
+                    datasets: [
+                        { label: 'Completed', data: [data.versionReport.v1.completed, data.versionReport.v2.completed], backgroundColor: '#28A745' },
+                        { label: 'Remaining', data: [data.versionReport.v1.remaining, data.versionReport.v2.remaining], backgroundColor: '#FF5733' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } }
+                    }
+                }
+            });
+
+            // 21. Group By Priority
+            if (charts.groupByChart) charts.groupByChart.destroy();
+            charts.groupByChart = new Chart(document.getElementById('groupByChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Low', 'Medium', 'High'],
+                    datasets: [{
+                        label: 'Issues',
+                        data: [data.groupByPriority.low, data.groupByPriority.medium, data.groupByPriority.high],
+                        backgroundColor: ['#28A745', '#FFC107', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Issues' } }
+                    }
+                }
+            });
+
+            // 22. Epic Report
+            if (charts.epicReportChart) charts.epicReportChart.destroy();
+            charts.epicReportChart = new Chart(document.getElementById('epicReportChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Epic 1', 'Epic 2'],
+                    datasets: [
+                        { label: 'Completed', data: [data.epicReport.epic1.completed, data.epicReport.epic2.completed], backgroundColor: '#28A745' },
+                        { label: 'Remaining', data: [data.epicReport.epic1.remaining, data.epicReport.epic2.remaining], backgroundColor: '#FF5733' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } }
+                    }
+                }
+            });
+            const epicTable = document.getElementById('epicReportTable').getElementsByTagName('tbody')[0];
+            epicTable.innerHTML = `
+                <tr><td>Epic 1</td><td>${data.epicReport.epic1.completed}</td><td>${data.epicReport.epic1.remaining}</td></tr>
+                <tr><td>Epic 2</td><td>${data.epicReport.epic2.completed}</td><td>${data.epicReport.epic2.remaining}</td></tr>
+            `;
+
+            // 23. Time Since Issues
+            if (charts.timeSinceIssuesChart) charts.timeSinceIssuesChart.destroy();
+            charts.timeSinceIssuesChart = new Chart(document.getElementById('timeSinceIssuesChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.timeSinceIssues.statuses,
+                    datasets: [{
+                        label: 'Average Days Since Creation',
+                        data: data.timeSinceIssues.days,
+                        borderColor: '#007BFF',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } },
+                        x: { title: { display: true, text: 'Status' } }
+                    }
+                }
+            });
+
+            // 24. Release Burndown
+            if (charts.releaseBurndownChart) charts.releaseBurndownChart.destroy();
+            charts.releaseBurndownChart = new Chart(document.getElementById('releaseBurndownChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.releaseBurndown.sprints,
+                    datasets: [
+                        { label: 'Remaining Story Points', data: data.releaseBurndown.points, borderColor: '#FF5733', fill: false, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                        x: { title: { display: true, text: 'Sprints' } }
+                    }
+                }
+            });
+
+            // 25. Sprint Health
+            const healthIndicator = document.getElementById('healthIndicator');
+            healthIndicator.textContent = `Sprint Health: ${data.health}`;
+            healthIndicator.className = `health-indicator health-${data.health.toLowerCase()}`;
+
+            // 26. Days in Column Report
+            if (charts.daysInColumnChart) charts.daysInColumnChart.destroy();
+            charts.daysInColumnChart = new Chart(document.getElementById('daysInColumnChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['To Do', 'In Progress', 'Done'],
+                    datasets: [{
+                        label: 'Average Days',
+                        data: [data.daysInColumn.todo, data.daysInColumn.inProgress, data.daysInColumn.done],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+        }
+
+        // Update charts based on sprint selection
+        function updateCharts() {
+            const sprintId = document.getElementById('sprintSelect').value;
+            initializeCharts(sprintId);
+        }
+
+        // Download charts as PNG
+        function downloadCharts() {
+            const chartList = [
+                { canvas: document.getElementById('burndownChart'), name: 'burndown' },
+                { canvas: document.getElementById('burnupChart'), name: 'burnup' },
+                { canvas: document.getElementById('sprintReportChart'), name: 'sprintReport' },
+                { canvas: document.getElementById('taskStatusChart'), name: 'taskStatus' },
+                { canvas: document.getElementById('riskDistributionChart'), name: 'riskDistribution' },
+                { canvas: document.getElementById('epicBurndownChart'), name: 'epicBurndown' },
+                { canvas: document.getElementById('releasePlanChart'), name: 'releasePlan' }, // Setting up the environment
+                { canvas: document.getElementById('controlChart'), name: 'control' },
+                { canvas: document.getElementById('averageAgeChart'), name: 'averageAge' },
+                { canvas: document.getElementById('timeTrackingChart'), name: 'timeTracking' },
+                { canvas: document.getElementById('timeSheetChart'), name: 'timeSheet' },
+                { canvas: document.getElementById('createdVsResolvedChart'), name: 'createdVsResolved' },
+                { canvas: document.getElementById('workloadPieChart'), name: 'workloadPie' },
+                { canvas: document.getElementById('pieChartReport'), name: 'issueType' },
+                { canvas: document.getElementById('versionWorkloadChart'), name: 'versionWorkload' },
+                { canvas: document.getElementById('velocityChart'), name: 'velocity' },
+                { canvas: document.getElementById('recentlyCreatedChart'), name: 'recentlyCreated' },
+                { canvas: document.getElementById('cumulativeFlowChart'), name: 'cumulativeFlow' },
+                { canvas: document.getElementById('resolutionTimeChart'), name: 'resolutionTime' },
+                { canvas: document.getElementById('versionReportChart'), name: 'versionReport' },
+                { canvas: document.getElementById('groupByChart'), name: 'groupBy' },
+                { canvas: document.getElementById('epicReportChart'), name: 'epicReport' },
+                { canvas: document.getElementById('timeSinceIssuesChart'), name: 'timeSinceIssues' },
+                { canvas: document.getElementById('releaseBurndownChart'), name: 'releaseBurndown' },
+                { canvas: document.getElementById('daysInColumnChart'), name: 'daysInColumn' }
+            ];
+            chartList.forEach(chart => {
+                const url = chart.canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `agile_dashboard_${chart.name}.png`;
+                link.click();
+            });
+        }
+
+        // Initialize with Sprint 1
+        initializeCharts('1');
+    </script>
+</body>
+</html>

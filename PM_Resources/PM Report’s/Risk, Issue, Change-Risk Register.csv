@@ -1,0 +1,7 @@
+Risk ID,Risk Description,Impact,Likelihood,Mitigation Plan,Owner,Status
+R001,Delays in requirement gathering due to stakeholder unavailability.,High,Medium,"Schedule buffer time, proactive follow-ups, prioritize key stakeholders.",Business Analyst,Open
+R002,"Data migration issues (data corruption, loss, duplication).",High,High,"Conduct data profiling, test migration on a sample dataset first.",Data Migration Lead,Open
+R003,Integration failures due to API limitations or middleware constraints.,High,Medium,"Conduct feasibility study, have backup integration methods.",Integration Developer,Open
+R004,Resistance to change from end users.,Medium,High,"Early user engagement, training workshops, feedback loops.",Training Lead,Open
+R005,Performance issues in Salesforce post-implementation.,High,Low,"Conduct load testing, optimize queries, and use Salesforce best practices.",Solution Architect,Open
+R006,Scope creep due to additional business requirements.,High,High,"Establish a strong change control process, align scope expectations early.",Project Manager,Open

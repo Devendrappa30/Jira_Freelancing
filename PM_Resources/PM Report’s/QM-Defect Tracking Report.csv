@@ -1,0 +1,4 @@
+Defect ID,Category,Description,Severity,Status,Owner,Resolution ETA
+DEF-001,Data Migration,Missing values in records,High,Open,Data Team,05-Apr-2025
+DEF-002,Integration,API failure in ERP sync,Critical,Open,Integration Team,08-Apr-2025
+DEF-003,Performance,Slow response in queries,Medium,In Progress,Dev Team,10-Apr-2025

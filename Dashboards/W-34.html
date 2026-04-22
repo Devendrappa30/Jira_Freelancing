@@ -1,0 +1,1219 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Waterfall Project Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .health-indicator {
+            text-align: center;
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+        }
+        .health-green { background-color: #28A745; }
+        .health-yellow { background-color: #FFC107; }
+        .health-red { background-color: #DC3545; }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        select, input[type="file"] {
+            padding: 10px;
+            margin: 0 10px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive Waterfall Project Dashboard</h1>
+    <div class="controls">
+        <label for="phaseSelect">Select Phase: </label>
+        <select id="phaseSelect" onchange="updateCharts()">
+            <option value="1">Requirements</option>
+            <option value="2">Design</option>
+            <option value="3">Implementation</option>
+            <option value="4">Testing</option>
+            <option value="5">Deployment</option>
+        </select>
+        <label for="fileInput">Upload Data File: </label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(event)">
+        <button onclick="downloadCharts()">Download Charts as PNG</button>
+    </div>
+    <div class="dashboard">
+        <div class="chart-container">
+            <h2>Phase Progress</h2>
+            <canvas id="phaseProgressChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Milestone Status</h2>
+            <canvas id="milestoneStatusChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Budget Report</h2>
+            <canvas id="budgetReportChart"></canvas>
+            <table id="budgetReportTable">
+                <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Task Status</h2>
+            <canvas id="taskStatusChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Risk Distribution</h2>
+            <canvas id="riskDistributionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Resource Allocation</h2>
+            <canvas id="resourceAllocationChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Phase Timeline</h2>
+            <canvas id="phaseTimelineChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Cost Variance</h2>
+            <canvas id="costVarianceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Schedule Variance</h2>
+            <canvas id="scheduleVarianceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Time Tracking Report</h2>
+            <canvas id="timeTrackingChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Team Workload</h2>
+            <canvas id="teamWorkloadChart"></canvas>
+            <table id="teamWorkloadTable">
+                <thead><tr><th>Member</th><th>Hours Logged</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Issue Resolution</h2>
+            <canvas id="issueResolutionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Gantt Chart</h2>
+            <canvas id="ganttChart"></canvas>
+            <table id="ganttTable">
+                <thead><tr><th>Task</th><th>Progress (%)</th><th>Dependency</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Defect Density</h2>
+            <canvas id="defectDensityChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Test Coverage</h2>
+            <canvas id="testCoverageChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Rework Effort</h2>
+            <canvas id="reworkEffortChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Root Cause Analysis</h2>
+            <table id="rcaTable">
+                <thead><tr><th>Issue</th><th>Root Cause</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Schedule Performance Index (SPI)</h2>
+            <canvas id="spiChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Cost Performance Index (CPI)</h2>
+            <canvas id="cpiChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Earned Value Management</h2>
+            <canvas id="evmChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Project Status Summary</h2>
+            <table id="projectStatusTable">
+                <thead><tr><th>Metric</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Task Completion Rate</h2>
+            <canvas id="taskCompletionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Team Velocity</h2>
+            <canvas id="teamVelocityChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Collaboration Score</h2>
+            <canvas id="collaborationScoreChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Training Hours</h2>
+            <canvas id="trainingHoursChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Peer Feedback</h2>
+            <table id="peerFeedbackTable">
+                <thead><tr><th>Member</th><th>Feedback</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Customer Satisfaction (CSAT)</h2>
+            <canvas id="csatChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Net Promoter Score (NPS)</h2>
+            <canvas id="npsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Customer Effort Score (CES)</h2>
+            <canvas id="cesChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Ticket Resolution Rate</h2>
+            <canvas id="ticketResolutionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Customer Feedback</h2>
+            <table id="customerFeedbackTable">
+                <thead><tr><th>Feedback</th><th>Source</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Project Health</h2>
+            <div id="healthIndicator" class="health-indicator"></div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell !== null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) => row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length);
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        // Mock data for Waterfall phases
+        const phaseData = {
+            1: {
+                progress: { tasks: ['Task 1', 'Task 2', 'Task 3', 'Task 4'], completed: [100, 80, 60, 20] },
+                milestones: { completed: 3, inProgress: 1, notStarted: 1 },
+                budget: { planned: 100000, spent: 80000, remaining: 20000 },
+                tasks: { todo: 5, inProgress: 3, done: 12 },
+                risks: { low: 8, medium: 4, high: 2 },
+                resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [40, 35, 45, 30] },
+                timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 50, 0, 0, 0] },
+                costVariance: { planned: 100000, actual: 80000 },
+                scheduleVariance: { plannedDays: 30, actualDays: 25 },
+                timeTracking: { estimated: 200, logged: 180 },
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [40, 35, 45, 30] },
+                issues: { reported: 10, resolved: 8 },
+                gantt: [
+                    { task: 'Task 1', start: 0, duration: 5, progress: 100, dependencies: [], milestone: false },
+                    { task: 'Task 2', start: 5, duration: 4, progress: 80, dependencies: ['Task 1'], milestone: false },
+                    { task: 'Task 3', start: 9, duration: 3, progress: 60, dependencies: ['Task 2'], milestone: false },
+                    { task: 'Milestone 1', start: 12, duration: 0, progress: 100, dependencies: ['Task 3'], milestone: true }
+                ],
+                quality: {
+                    defectDensity: 0.5,
+                    testCoverage: 90,
+                    reworkHours: 20,
+                    compliance: 95,
+                    rca: [{ issue: 'Bug A', cause: 'Coding error' }, { issue: 'Bug B', cause: 'Requirements gap' }]
+                },
+                performance: {
+                    spi: 1.2,
+                    cpi: 1.1,
+                    evm: { ev: 80000, pv: 75000, ac: 70000 },
+                    plannedVsActual: { time: { planned: 30, actual: 25 }, cost: { planned: 100000, actual: 80000 }, scope: { planned: 100, actual: 95 } },
+                    riskSummary: { open: 5, mitigated: 3 },
+                    status: { scope: 'On Track', schedule: 'Ahead', budget: 'Under' }
+                },
+                team: {
+                    completionRate: 85,
+                    velocity: 30,
+                    collaboration: 80,
+                    trainingHours: [10, 8, 12, 6],
+                    feedback: [{ member: 'Alice', comment: 'Great work' }, { member: 'Bob', comment: 'Needs improvement' }],
+                    attendance: 95
+                },
+                customer: {
+                    csat: 85,
+                    nps: 60,
+                    ces: 4,
+                    ticketResolution: 90,
+                    feedback: [{ comment: 'Great product!', source: 'Client A' }, { comment: 'Needs faster support', source: 'Client B' }],
+                    complaintResponse: 24
+                },
+                health: 'Green'
+            },
+            2: {
+                progress: { tasks: ['Task 5', 'Task 6', 'Task 7', 'Task 8'], completed: [90, 70, 50, 10] },
+                milestones: { completed: 2, inProgress: 2, notStarted: 1 },
+                budget: { planned: 150000, spent: 130000, remaining: 20000 },
+                tasks: { todo: 4, inProgress: 5, done: 15 },
+                risks: { low: 6, medium: 5, high: 3 },
+                resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [45, 40, 50, 35] },
+                timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 80, 20, 0, 0] },
+                costVariance: { planned: 150000, actual: 130000 },
+                scheduleVariance: { plannedDays: 40, actualDays: 45 },
+                timeTracking: { estimated: 250, logged: 220 },
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [45, 40, 50, 35] },
+                issues: { reported: 12, resolved: 9 },
+                gantt: [
+                    { task: 'Task 5', start: 0, duration: 6, progress: 90, dependencies: [], milestone: false },
+                    { task: 'Task 6', start: 6, duration: 5, progress: 70, dependencies: ['Task 5'], milestone: false },
+                    { task: 'Task 7', start: 11, duration: 4, progress: 50, dependencies: ['Task 6'], milestone: false },
+                    { task: 'Milestone 2', start: 15, duration: 0, progress: 100, dependencies: ['Task 7'], milestone: true }
+                ],
+                quality: {
+                    defectDensity: 0.7,
+                    testCoverage: 85,
+                    reworkHours: 30,
+                    compliance: 90,
+                    rca: [{ issue: 'Bug C', cause: 'Design flaw' }, { issue: 'Bug D', cause: 'Test miss' }]
+                },
+                performance: {
+                    spi: 0.9,
+                    cpi: 0.95,
+                    evm: { ev: 120000, pv: 130000, ac: 135000 },
+                    plannedVsActual: { time: { planned: 40, actual: 45 }, cost: { planned: 150000, actual: 130000 }, scope: { planned: 100, actual: 90 } },
+                    riskSummary: { open: 7, mitigated: 2 },
+                    status: { scope: 'At Risk', schedule: 'Behind', budget: 'Over' }
+                },
+                team: {
+                    completionRate: 75,
+                    velocity: 25,
+                    collaboration: 70,
+                    trainingHours: [8, 6, 10, 5],
+                    feedback: [{ member: 'Alice', comment: 'Good effort' }, { member: 'Bob', comment: 'Improve communication' }],
+                    attendance: 90
+                },
+                customer: {
+                    csat: 80,
+                    nps: 50,
+                    ces: 5,
+                    ticketResolution: 85,
+                    feedback: [{ comment: 'Satisfied with progress', source: 'Client C' }, { comment: 'Slow response', source: 'Client D' }],
+                    complaintResponse: 36
+                },
+                health: 'Yellow'
+            }
+        };
+
+        // Store processed file data
+        let fileBasedData = {};
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const filename = file.name;
+            const reader = new FileReader();
+            
+            gk_isXlsx = filename.endsWith('.xlsx') || filename.endsWith('.xls');
+            gk_xlsxFileLookup[filename] = true;
+
+            reader.onload = function(e) {
+                gk_fileData[filename] = gk_isXlsx ? e.target.result.split(',')[1] : e.target.result;
+                const csvData = loadFileData(filename);
+                if (csvData) {
+                    processCsvData(csvData, filename);
+                    updateCharts();
+                } else {
+                    alert('Error processing file. Please check the format and try again.');
+                }
+            };
+            
+            if (gk_isXlsx) {
+                reader.readAsDataURL(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+
+        // Process CSV data to match phaseData structure
+        function processCsvData(csv, filename) {
+            const lines = csv.split('\n').map(line => line.split(','));
+            const headers = lines[0];
+            const data = lines.slice(1).filter(row => row.some(filledCell));
+
+            fileBasedData = {};
+            const phaseIndex = headers.indexOf('Phase');
+            const taskIndex = headers.indexOf('Task');
+            const completionIndex = headers.indexOf('Completion');
+            const statusIndex = headers.indexOf('Status');
+            const memberIndex = headers.indexOf('Member');
+            const hoursIndex = headers.indexOf('Hours');
+            const riskIndex = headers.indexOf('Risk');
+            const budgetIndex = headers.indexOf('Budget');
+            const spentIndex = headers.indexOf('Spent');
+            const startDateIndex = headers.indexOf('StartDate');
+            const endDateIndex = headers.indexOf('EndDate');
+            const dependencyIndex = headers.indexOf('Dependency');
+            const milestoneIndex = headers.indexOf('Milestone');
+            const defectCountIndex = headers.indexOf('DefectCount');
+            const testCoverageIndex = headers.indexOf('TestCoverage');
+            const reworkHoursIndex = headers.indexOf('ReworkHours');
+            const complianceIndex = headers.indexOf('Compliance');
+            const rcaIssueIndex = headers.indexOf('RCAIssue');
+            const rcaCauseIndex = headers.indexOf('RCACause');
+            const spiIndex = headers.indexOf('SPI');
+            const cpiIndex = headers.indexOf('CPI');
+            const evIndex = headers.indexOf('EV');
+            const pvIndex = headers.indexOf('PV');
+            const acIndex = headers.indexOf('AC');
+            const completionRateIndex = headers.indexOf('CompletionRate');
+            const velocityIndex = headers.indexOf('Velocity');
+            const collaborationIndex = headers.indexOf('Collaboration');
+            const trainingHoursIndex = headers.indexOf('TrainingHours');
+            const feedbackIndex = headers.indexOf('Feedback');
+            const csatIndex = headers.indexOf('CSAT');
+            const npsIndex = headers.indexOf('NPS');
+            const cesIndex = headers.indexOf('CES');
+            const ticketResolutionIndex = headers.indexOf('TicketResolution');
+            const complaintResponseIndex = headers.indexOf('ComplaintResponse');
+
+            data.forEach(row => {
+                const phase = row[phaseIndex] || '1';
+                if (!fileBasedData[phase]) {
+                    fileBasedData[phase] = {
+                        progress: { tasks: [], completed: [] },
+                        milestones: { completed: 0, inProgress: 0, notStarted: 0 },
+                        budget: { planned: 0, spent: 0, remaining: 0 },
+                        tasks: { todo: 0, inProgress: 0, done: 0 },
+                        risks: { low: 0, medium: 0, high: 0 },
+                        resources: { members: [], hours: [] },
+                        timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [0, 0, 0, 0, 0] },
+                        costVariance: { planned: 0, actual: 0 },
+                        scheduleVariance: { plannedDays: 0, actualDays: 0 },
+                        timeTracking: { estimated: 0, logged: 0 },
+                        workload: { members: [], hours: [] },
+                        issues: { reported: 0, resolved: 0 },
+                        gantt: [],
+                        quality: { defectDensity: 0, testCoverage: 0, reworkHours: 0, compliance: 0, rca: [] },
+                        performance: { spi: 0, cpi: 0, evm: { ev: 0, pv: 0, ac: 0 }, plannedVsActual: { time: { planned: 0, actual: 0 }, cost: { planned: 0, actual: 0 }, scope: { planned: 0, actual: 0 } }, riskSummary: { open: 0, mitigated: 0 }, status: {} },
+                        team: { completionRate: 0, velocity: 0, collaboration: 0, trainingHours: [], feedback: [], attendance: 0 },
+                        customer: { csat: 0, nps: 0, ces: 0, ticketResolution: 0, feedback: [], complaintResponse: 0 },
+                        health: 'Green'
+                    };
+                }
+
+                const task = row[taskIndex] || 'Task ' + (fileBasedData[phase].progress.tasks.length + 1);
+                const completion = parseFloat(row[completionIndex]) || 0;
+                if (!fileBasedData[phase].progress.tasks.includes(task)) {
+                    fileBasedData[phase].progress.tasks.push(task);
+                    fileBasedData[phase].progress.completed.push(completion);
+                }
+
+                const status = row[statusIndex] || 'To Do';
+                if (status.toLowerCase().includes('todo')) fileBasedData[phase].tasks.todo += 1;
+                else if (status.toLowerCase().includes('progress')) fileBasedData[phase].tasks.inProgress += 1;
+                else if (status.toLowerCase().includes('done')) fileBasedData[phase].tasks.done += 1;
+
+                const risk = row[riskIndex] || 'Medium';
+                if (risk.toLowerCase().includes('low')) fileBasedData[phase].risks.low += 1;
+                else if (risk.toLowerCase().includes('high')) fileBasedData[phase].risks.high += 1;
+                else fileBasedData[phase].risks.medium += 1;
+
+                const member = row[memberIndex] || 'Unknown';
+                const hours = parseFloat(row[hoursIndex]) || 0;
+                if (!fileBasedData[phase].resources.members.includes(member)) {
+                    fileBasedData[phase].resources.members.push(member);
+                    fileBasedData[phase].resources.hours.push(hours);
+                    fileBasedData[phase].workload.members.push(member);
+                    fileBasedData[phase].workload.hours.push(hours);
+                }
+
+                const budget = parseFloat(row[budgetIndex]) || 0;
+                const spent = parseFloat(row[spentIndex]) || 0;
+                fileBasedData[phase].budget.planned += budget;
+                fileBasedData[phase].budget.spent += spent;
+                fileBasedData[phase].budget.remaining = fileBasedData[phase].budget.planned - fileBasedData[phase].budget.spent;
+                fileBasedData[phase].costVariance.planned += budget;
+                fileBasedData[phase].costVariance.actual += spent;
+
+                if (row[startDateIndex] && row[endDateIndex]) {
+                    const start = parseFloat(row[startDateIndex]) || 0;
+                    const duration = parseFloat(row[endDateIndex]) - start || 0;
+                    const dependencies = row[dependencyIndex] ? row[dependencyIndex].split(';') : [];
+                    const milestone = row[milestoneIndex]?.toLowerCase() === 'true';
+                    fileBasedData[phase].gantt.push({ task, start, duration, progress: completion, dependencies, milestone });
+                }
+
+                fileBasedData[phase].quality.defectDensity += parseFloat(row[defectCountIndex]) || 0;
+                fileBasedData[phase].quality.testCoverage += parseFloat(row[testCoverageIndex]) || 0;
+                fileBasedData[phase].quality.reworkHours += parseFloat(row[reworkHoursIndex]) || 0;
+                fileBasedData[phase].quality.compliance += parseFloat(row[complianceIndex]) || 0;
+                if (row[rcaIssueIndex] && row[rcaCauseIndex]) {
+                    fileBasedData[phase].quality.rca.push({ issue: row[rcaIssueIndex], cause: row[rcaCauseIndex] });
+                }
+
+                fileBasedData[phase].performance.spi += parseFloat(row[spiIndex]) || 0;
+                fileBasedData[phase].performance.cpi += parseFloat(row[cpiIndex]) || 0;
+                fileBasedData[phase].performance.evm.ev += parseFloat(row[evIndex]) || 0;
+                fileBasedData[phase].performance.evm.pv += parseFloat(row[pvIndex]) || 0;
+                fileBasedData[phase].performance.evm.ac += parseFloat(row[acIndex]) || 0;
+
+                fileBasedData[phase].team.completionRate += parseFloat(row[completionRateIndex]) || 0;
+                fileBasedData[phase].team.velocity += parseFloat(row[velocityIndex]) || 0;
+                fileBasedData[phase].team.collaboration += parseFloat(row[collaborationIndex]) || 0;
+                if (row[trainingHoursIndex]) {
+                    fileBasedData[phase].team.trainingHours.push(parseFloat(row[trainingHoursIndex]));
+                }
+                if (row[feedbackIndex]) {
+                    fileBasedData[phase].team.feedback.push({ member, comment: row[feedbackIndex] });
+                }
+
+                fileBasedData[phase].customer.csat += parseFloat(row[csatIndex]) || 0;
+                fileBasedData[phase].customer.nps += parseFloat(row[npsIndex]) || 0;
+                fileBasedData[phase].customer.ces += parseFloat(row[cesIndex]) || 0;
+                fileBasedData[phase].customer.ticketResolution += parseFloat(row[ticketResolutionIndex]) || 0;
+                if (row[feedbackIndex]) {
+                    fileBasedData[phase].customer.feedback.push({ comment: row[feedbackIndex], source: member });
+                }
+                fileBasedData[phase].customer.complaintResponse += parseFloat(row[complaintResponseIndex]) || 0;
+            });
+
+            Object.keys(fileBasedData).forEach(phase => {
+                fileBasedData[phase].timeline.progress[parseInt(phase) - 1] = fileBasedData[phase].progress.completed.reduce((a, b) => a + b, 0) / fileBasedData[phase].progress.tasks.length || 0;
+                fileBasedData[phase].milestones.completed = fileBasedData[phase].tasks.done;
+                fileBasedData[phase].milestones.inProgress = fileBasedData[phase].tasks.inProgress;
+                fileBasedData[phase].milestones.notStarted = fileBasedData[phase].tasks.todo;
+                fileBasedData[phase].performance.status = {
+                    scope: fileBasedData[phase].progress.completed.reduce((a, b) => a + b, 0) / fileBasedData[phase].progress.tasks.length >= 90 ? 'On Track' : 'At Risk',
+                    schedule: fileBasedData[phase].performance.spi >= 1 ? 'Ahead' : 'Behind',
+                    budget: fileBasedData[phase].performance.cpi >= 1 ? 'Under' : 'Over'
+                };
+            });
+        }
+
+        // Chart instances
+        let charts = {};
+
+        // Initialize charts
+        function initializeCharts(phaseId = '1') {
+            const data = fileBasedData[phaseId] || phaseData[phaseId] || phaseData['1'];
+
+            // 1. Phase Progress
+            if (charts.phaseProgressChart) charts.phaseProgressChart.destroy();
+            charts.phaseProgressChart = new Chart(document.getElementById('phaseProgressChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.progress.tasks,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: data.progress.completed,
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Completion (%)' } },
+                        x: { title: { display: true, text: 'Tasks' } }
+                    }
+                }
+            });
+
+            // 2. Milestone Status
+            if (charts.milestoneStatusChart) charts.milestoneStatusChart.destroy();
+            charts.milestoneStatusChart = new Chart(document.getElementById('milestoneStatusChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Not Started'],
+                    datasets: [{
+                        data: [data.milestones.completed, data.milestones.inProgress, data.milestones.notStarted],
+                        backgroundColor: ['#28A745', '#007BFF', '#FFCC00']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 3. Budget Report
+            if (charts.budgetReportChart) charts.budgetReportChart.destroy();
+            charts.budgetReportChart = new Chart(document.getElementById('budgetReportChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Planned', 'Spent', 'Remaining'],
+                    datasets: [{
+                        label: 'Budget ($)',
+                        data: [data.budget.planned, data.budget.spent, data.budget.remaining],
+                        backgroundColor: ['#007BFF', '#28A745', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Amount ($)' } }
+                    }
+                }
+            });
+            const budgetTable = document.getElementById('budgetReportTable').getElementsByTagName('tbody')[0];
+            budgetTable.innerHTML = `
+                <tr><td>Planned</td><td>$${data.budget.planned}</td></tr>
+                <tr><td>Spent</td><td>$${data.budget.spent}</td></tr>
+                <tr><td>Remaining</td><td>$${data.budget.remaining}</td></tr>
+            `;
+
+            // 4. Task Status
+            if (charts.taskStatusChart) charts.taskStatusChart.destroy();
+            charts.taskStatusChart = new Chart(document.getElementById('taskStatusChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['To Do', 'In Progress', 'Done'],
+                    datasets: [{
+                        data: [data.tasks.todo, data.tasks.inProgress, data.tasks.done],
+                        backgroundColor: ['#FFCC00', '#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 5. Risk Distribution
+            if (charts.riskDistributionChart) charts.riskDistributionChart.destroy();
+            charts.riskDistributionChart = new Chart(document.getElementById('riskDistributionChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Low', 'Medium', 'High'],
+                    datasets: [{
+                        data: [data.risks.low, data.risks.medium, data.risks.high],
+                        backgroundColor: ['#28A745', '#FFC107', '#FF5733']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 6. Resource Allocation
+            if (charts.resourceAllocationChart) charts.resourceAllocationChart.destroy();
+            charts.resourceAllocationChart = new Chart(document.getElementById('resourceAllocationChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.resources.members,
+                    datasets: [{
+                        label: 'Hours Allocated',
+                        data: data.resources.hours,
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                        x: { title: { display: true, text: 'Team Members' } }
+                    }
+                }
+            });
+
+            // 7. Phase Timeline
+            if (charts.phaseTimelineChart) charts.phaseTimelineChart.destroy();
+            charts.phaseTimelineChart = new Chart(document.getElementById('phaseTimelineChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.timeline.phases,
+                    datasets: [{
+                        label: 'Progress (%)',
+                        data: data.timeline.progress,
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Progress (%)' } },
+                        x: { title: { display: true, text: 'Phases' } }
+                    }
+                }
+            });
+
+            // 8. Cost Variance
+            if (charts.costVarianceChart) charts.costVarianceChart.destroy();
+            charts.costVarianceChart = new Chart(document.getElementById('costVarianceChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Planned', 'Actual'],
+                    datasets: [{
+                        label: 'Cost ($)',
+                        data: [data.costVariance.planned, data.costVariance.actual],
+                        backgroundColor: ['#007BFF', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Cost ($)' } }
+                    }
+                }
+            });
+
+            // 9. Schedule Variance
+            if (charts.scheduleVarianceChart) charts.scheduleVarianceChart.destroy();
+            charts.scheduleVarianceChart = new Chart(document.getElementById('scheduleVarianceChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Planned', 'Actual'],
+                    datasets: [{
+                        label: 'Days',
+                        data: [data.scheduleVariance.plannedDays, data.scheduleVariance.actualDays],
+                        backgroundColor: ['#007BFF', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // 10. Time Tracking Report
+            if (charts.timeTrackingChart) charts.timeTrackingChart.destroy();
+            charts.timeTrackingChart = new Chart(document.getElementById('timeTrackingChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Estimated', 'Logged'],
+                    datasets: [{
+                        label: 'Hours',
+                        data: [data.timeTracking.estimated, data.timeTracking.logged],
+                        backgroundColor: ['#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } }
+                    }
+                }
+            });
+
+            // 11. Team Workload
+            if (charts.teamWorkloadChart) charts.teamWorkloadChart.destroy();
+            charts.teamWorkloadChart = new Chart(document.getElementById('teamWorkloadChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.workload.members,
+                    datasets: [{
+                        label: 'Hours Logged',
+                        data: data.workload.hours,
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                        x: { title: { display: true, text: 'Team Members' } }
+                    }
+                }
+            });
+            const workloadTable = document.getElementById('teamWorkloadTable').getElementsByTagName('tbody')[0];
+            workloadTable.innerHTML = data.workload.members.map((m, i) => `<tr><td>${m}</td><td>${data.workload.hours[i]}</td></tr>`).join('');
+
+            // 12. Issue Resolution
+            if (charts.issueResolutionChart) charts.issueResolutionChart.destroy();
+            charts.issueResolutionChart = new Chart(document.getElementById('issueResolutionChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Reported', 'Resolved'],
+                    datasets: [{
+                        label: 'Issues',
+                        data: [data.issues.reported, data.issues.resolved],
+                        backgroundColor: ['#FF5733', '#28A745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Issues' } }
+                    }
+                }
+            });
+
+            // 13. Gantt Chart
+            if (charts.ganttChart) charts.ganttChart.destroy();
+            charts.ganttChart = new Chart(document.getElementById('ganttChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.gantt.map(item => item.task),
+                    datasets: [{
+                        label: 'Progress (%)',
+                        data: data.gantt.map(item => item.progress),
+                        backgroundColor: data.gantt.map(item => item.milestone ? '#FF5733' : '#007BFF'),
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, title: { display: true, text: 'Days' } },
+                        y: { title: { display: true, text: 'Tasks' } }
+                    }
+                }
+            });
+            const ganttTable = document.getElementById('ganttTable').getElementsByTagName('tbody')[0];
+            ganttTable.innerHTML = data.gantt.map(item => `<tr><td>${item.task}</td><td>${item.progress}%</td><td>${item.dependencies.join(', ')}</td></tr>`).join('');
+
+            // 14. Defect Density
+            if (charts.defectDensityChart) charts.defectDensityChart.destroy();
+            charts.defectDensityChart = new Chart(document.getElementById('defectDensityChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Defect Density'],
+                    datasets: [{
+                        label: 'Defects per KLOC',
+                        data: [data.quality.defectDensity],
+                        backgroundColor: '#FF5733'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Defects per KLOC' } }
+                    }
+                }
+            });
+
+            // 15. Test Coverage
+            if (charts.testCoverageChart) charts.testCoverageChart.destroy();
+            charts.testCoverageChart = new Chart(document.getElementById('testCoverageChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Test Coverage'],
+                    datasets: [{
+                        label: 'Coverage (%)',
+                        data: [data.quality.testCoverage],
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Coverage (%)' } }
+                    }
+                }
+            });
+
+            // 16. Rework Effort
+            if (charts.reworkEffortChart) charts.reworkEffortChart.destroy();
+            charts.reworkEffortChart = new Chart(document.getElementById('reworkEffortChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Rework Effort'],
+                    datasets: [{
+                        label: 'Hours',
+                        data: [data.quality.reworkHours],
+                        backgroundColor: '#FFC107'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } }
+                    }
+                }
+            });
+
+            // 17. Root Cause Analysis
+            const rcaTable = document.getElementById('rcaTable').getElementsByTagName('tbody')[0];
+            rcaTable.innerHTML = data.quality.rca.map(item => `<tr><td>${item.issue}</td><td>${item.cause}</td></tr>`).join('');
+
+            // 18. Schedule Performance Index (SPI)
+            if (charts.spiChart) charts.spiChart.destroy();
+            charts.spiChart = new Chart(document.getElementById('spiChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['SPI'],
+                    datasets: [{
+                        label: 'SPI',
+                        data: [data.performance.spi],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'SPI' } }
+                    }
+                }
+            });
+
+            // 19. Cost Performance Index (CPI)
+            if (charts.cpiChart) charts.cpiChart.destroy();
+            charts.cpiChart = new Chart(document.getElementById('cpiChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['CPI'],
+                    datasets: [{
+                        label: 'CPI',
+                        data: [data.performance.cpi],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'CPI' } }
+                    }
+                }
+            });
+
+            // 20. Earned Value Management
+            if (charts.evmChart) charts.evmChart.destroy();
+            charts.evmChart = new Chart(document.getElementById('evmChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Earned Value', 'Planned Value', 'Actual Cost'],
+                    datasets: [{
+                        label: 'EVM ($)',
+                        data: [data.performance.evm.ev, data.performance.evm.pv, data.performance.evm.ac],
+                        backgroundColor: ['#28A745', '#007BFF', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Amount ($)' } }
+                    }
+                }
+            });
+
+            // 21. Project Status Summary
+            const projectStatusTable = document.getElementById('projectStatusTable').getElementsByTagName('tbody')[0];
+            projectStatusTable.innerHTML = `
+                <tr><td>Scope</td><td>${data.performance.status.scope}</td></tr>
+                <tr><td>Schedule</td><td>${data.performance.status.schedule}</td></tr>
+                <tr><td>Budget</td><td>${data.performance.status.budget}</td></tr>
+            `;
+
+            // 22. Task Completion Rate
+            if (charts.taskCompletionChart) charts.taskCompletionChart.destroy();
+            charts.taskCompletionChart = new Chart(document.getElementById('taskCompletionChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Completion Rate'],
+                    datasets: [{
+                        label: 'Completion (%)',
+                        data: [data.team.completionRate],
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Completion (%)' } }
+                    }
+                }
+            });
+
+            // 23. Team Velocity
+            if (charts.teamVelocityChart) charts.teamVelocityChart.destroy();
+            charts.teamVelocityChart = new Chart(document.getElementById('teamVelocityChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Velocity'],
+                    datasets: [{
+                        label: 'Story Points',
+                        data: [data.team.velocity],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Story Points' } }
+                    }
+                }
+            });
+
+            // 24. Collaboration Score
+            if (charts.collaborationScoreChart) charts.collaborationScoreChart.destroy();
+            charts.collaborationScoreChart = new Chart(document.getElementById('collaborationScoreChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Collaboration Score'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [data.team.collaboration],
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score' } }
+                    }
+                }
+            });
+
+            // 25. Training Hours
+            if (charts.trainingHoursChart) charts.trainingHoursChart.destroy();
+            charts.trainingHoursChart = new Chart(document.getElementById('trainingHoursChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.resources.members,
+                    datasets: [{
+                        label: 'Training Hours',
+                        data: data.team.trainingHours,
+                        backgroundColor: '#FFC107'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                        x: { title: { display: true, text: 'Team Members' } }
+                    }
+                }
+            });
+
+            // 26. Peer Feedback
+            const peerFeedbackTable = document.getElementById('peerFeedbackTable').getElementsByTagName('tbody')[0];
+            peerFeedbackTable.innerHTML = data.team.feedback.map(item => `<tr><td>${item.member}</td><td>${item.comment}</td></tr>`).join('');
+
+            // 27. Customer Satisfaction (CSAT)
+            if (charts.csatChart) charts.csatChart.destroy();
+            charts.csatChart = new Chart(document.getElementById('csatChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['CSAT'],
+                    datasets: [{
+                        label: 'Score (%)',
+                        data: [data.customer.csat],
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score (%)' } }
+                    }
+                }
+            });
+
+            // 28. Net Promoter Score (NPS)
+            if (charts.npsChart) charts.npsChart.destroy();
+            charts.npsChart = new Chart(document.getElementById('npsChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['NPS'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [data.customer.nps],
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score' } }
+                    }
+                }
+            });
+
+            // 29. Customer Effort Score (CES)
+            if (charts.cesChart) charts.cesChart.destroy();
+            charts.cesChart = new Chart(document.getElementById('cesChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['CES'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [data.customer.ces],
+                        backgroundColor: '#FF5733'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 7, title: { display: true, text: 'Score' } }
+                    }
+                }
+            });
+
+            // 30. Ticket Resolution Rate
+            if (charts.ticketResolutionChart) charts.ticketResolutionChart.destroy();
+            charts.ticketResolutionChart = new Chart(document.getElementById('ticketResolutionChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Resolution Rate'],
+                    datasets: [{
+                        label: 'Rate (%)',
+                        data: [data.customer.ticketResolution],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Rate (%)' } }
+                    }
+                }
+            });
+
+            // 31. Customer Feedback
+            const customerFeedbackTable = document.getElementById('customerFeedbackTable').getElementsByTagName('tbody')[0];
+            customerFeedbackTable.innerHTML = data.customer.feedback.map(item => `<tr><td>${item.comment}</td><td>${item.source}</td></tr>`).join('');
+
+            // 32. Project Health
+            const healthIndicator = document.getElementById('healthIndicator');
+            healthIndicator.textContent = `Project Health: ${data.health}`;
+            healthIndicator.className = `health-indicator health-${data.health.toLowerCase()}`;
+        }
+
+        // Update charts based on phase selection
+        function updateCharts() {
+            const phaseId = document.getElementById('phaseSelect').value;
+            initializeCharts(phaseId);
+        }
+
+        // Download charts as PNG
+        function downloadCharts() {
+            const chartList = [
+                { canvas: document.getElementById('phaseProgressChart'), name: 'phaseProgress' },
+                { canvas: document.getElementById('milestoneStatusChart'), name: 'milestoneStatus' },
+                { canvas: document.getElementById('budgetReportChart'), name: 'budgetReport' },
+                { canvas: document.getElementById('taskStatusChart'), name: 'taskStatus' },
+                { canvas: document.getElementById('riskDistributionChart'), name: 'riskDistribution' },
+                { canvas: document.getElementById('resourceAllocationChart'), name: 'resourceAllocation' },
+                { canvas: document.getElementById('phaseTimelineChart'), name: 'phaseTimeline' }, // Waterfall phase timeline
+                { canvas: document.getElementById('costVarianceChart'), name: 'costVariance' },
+                { canvas: document.getElementById('scheduleVarianceChart'), name: 'scheduleVariance' },
+                { canvas: document.getElementById('timeTrackingChart'), name: 'timeTracking' },
+                { canvas: document.getElementById('teamWorkloadChart'), name: 'teamWorkload' },
+                { canvas: document.getElementById('issueResolutionChart'), name: 'issueResolution' },
+                { canvas: document.getElementById('ganttChart'), name: 'gantt' },
+                { canvas: document.getElementById('defectDensityChart'), name: 'defectDensity' },
+                { canvas: document.getElementById('testCoverageChart'), name: 'testCoverage' },
+                { canvas: document.getElementById('reworkEffortChart'), name: 'reworkEffort' },
+                { canvas: document.getElementById('spiChart'), name: 'spi' },
+                { canvas: document.getElementById('cpiChart'), name: 'cpi' },
+                { canvas: document.getElementById('evmChart'), name: 'evm' },
+                { canvas: document.getElementById('taskCompletionChart'), name: 'taskCompletion' },
+                { canvas: document.getElementById('teamVelocityChart'), name: 'teamVelocity' },
+                { canvas: document.getElementById('collaborationScoreChart'), name: 'collaborationScore' },
+                { canvas: document.getElementById('trainingHoursChart'), name: 'trainingHours' },
+                { canvas: document.getElementById('csatChart'), name: 'csat' },
+                { canvas: document.getElementById('npsChart'), name: 'nps' },
+                { canvas: document.getElementById('cesChart'), name: 'ces' },
+                { canvas: document.getElementById('ticketResolutionChart'), name: 'ticketResolution' }
+            ];
+            chartList.forEach(chart => {
+                const url = chart.canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `waterfall_dashboard_${chart.name}.png`;
+                link.click();
+            });
+        }
+
+        // Initialize with Requirements phase
+        initializeCharts('1');
+    </script>
+</body>
+</html>

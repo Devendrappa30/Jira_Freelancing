@@ -1,0 +1,11 @@
+Plant Pals WBS Spreadsheet,,,,,
+Milestone ,ID,Task,Owner,Duration (days),Notes
+Establish plant delivery and logistics plan,1.1,Source packaging materials,Fullfilment Director,20,The Fulfillment Director sources materials 
+,1.2,Hire delivery drivers,Human Resources Specialist,10,The Human Resource Specialist oversees hiring
+,1.3,Calculate delivery fees,Financial Analyst,2,The Financial Analyst tracks costs and revenue
+Select and install supply chain software and equipment,2.1,Supervise vendor setup of inventory management and fulfillment software,Inventory Manager,5,The Inventory Manager maintains inventory and oversees software installation
+,2.2,Supervise vendor installation of the fulfillment equipment,Fulfillment Director,5,The Fulfillment Director ensures equipment is functional with the help of the Quality Assurance Tester
+,2.3,Establish internal safety protocols for equipment,The Quality Assurance Tester,2,The Quality Assurance Tester ensures product quality and determines safety protocols and best practices 
+Develop and launch employee training program,3.1,Develop training sessions,Human Resources Specialist,2,The Human Resources Specialist develops the training sessions with the help of the Training Manager
+,3.2,Train employees to use the software and equipment,Training Manager,5,The Training Manager runs the training program on the established protocols
+,3.3,Monitor progress and improve training processes,Training Manager,14,The Training Manager refines training processes

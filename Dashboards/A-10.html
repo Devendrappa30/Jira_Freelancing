@@ -1,0 +1,642 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Agile Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            max-width: 100%;
+            height: 300px;
+        }
+        .table-auto {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-auto th, .table-auto td {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            text-align: left;
+        }
+        .table-auto th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold text-center mb-8">Comprehensive Agile Dashboard</h1>
+
+        <!-- Sprint Selector and Download Button -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+            <div class="mb-4 md:mb-0">
+                <label for="sprint-selector" class="mr-2">Select Sprint:</label>
+                <select id="sprint-selector" class="border rounded p-2">
+                    <option>Sprint 1</option>
+                    <option>Sprint 2</option>
+                    <option>Sprint 3</option>
+                    <option>Sprint 4</option>
+                </select>
+            </div>
+            <button id="download-charts" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Download Charts as PNG</button>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Sprint Burndown -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Sprint Burndown</h2>
+                <div class="chart-container">
+                    <canvas id="sprintBurndownChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Burnup Chart -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Burnup Chart</h2>
+                <div class="chart-container">
+                    <canvas id="burnupChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Task Status -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Task Status</h2>
+                <div class="chart-container">
+                    <canvas id="taskStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Team Velocity -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Team Velocity</h2>
+                <div class="chart-container">
+                    <canvas id="teamVelocityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Risk Distribution -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Risk Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="riskDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Cycle Time -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Cycle Time</h2>
+                <div class="chart-container">
+                    <canvas id="cycleTimeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Team Workload -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Team Workload</h2>
+                <div class="chart-container">
+                    <canvas id="teamWorkloadChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Epic Burndown -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Epic Burndown</h2>
+                <div class="chart-container">
+                    <canvas id="epicBurndownChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Control Chart -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Control Chart</h2>
+                <div class="chart-container">
+                    <canvas id="controlChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Cumulative Flow Diagram -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Cumulative Flow Diagram</h2>
+                <div class="chart-container">
+                    <canvas id="cumulativeFlowChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Workload Pie Chart -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Workload Pie Chart</h2>
+                <div class="chart-container">
+                    <canvas id="workloadPieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Issue Type Distribution -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Issue Type Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="issueTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Agile Reports</h2>
+            <div class="space-y-6">
+                <!-- Sprint Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Sprint Report</h3>
+                    <table class="table-auto">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Story Points Completed</td>
+                                <td>32</td>
+                            </tr>
+                            <tr>
+                                <td>Defects Found</td>
+                                <td>5</td>
+                            </tr>
+                            <tr>
+                                <td>Team Satisfaction</td>
+                                <td>4.2/5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Epic Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Epic Report</h3>
+                    <table class="table-auto">
+                        <thead>
+                            <tr>
+                                <th>Epic</th>
+                                <th>Completed</th>
+                                <th>Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>User Authentication</td>
+                                <td>80%</td>
+                                <td>20%</td>
+                            </tr>
+                            <tr>
+                                <td>Payment Integration</td>
+                                <td>50%</td>
+                                <td>50%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Time Sheet Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Time Sheet Report</h3>
+                    <table class="table-auto">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Hours Logged</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Alice</td>
+                                <td>40</td>
+                            </tr>
+                            <tr>
+                                <td>Bob</td>
+                                <td>38</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Average Age Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Average Age Report</h3>
+                    <p class="text-gray-600">Average issue age: 7 days. Trend: Stable over last 3 sprints.</p>
+                </div>
+
+                <!-- Time Tracking Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Time Tracking Report</h3>
+                    <p class="text-gray-600">Total hours logged: 320. Variance from estimate: +5%.</p>
+                </div>
+
+                <!-- Created vs Resolved Issues -->
+                <div>
+                    <h3 class="text-lg font-medium">Created vs Resolved Issues</h3>
+                    <p class="text-gray-600">Created: 25, Resolved: 22. Backlog growth: +3 issues.</p>
+                </div>
+
+                <!-- Version Workload -->
+                <div>
+                    <h3 class="text-lg font-medium">Version Workload</h3>
+                    <p class="text-gray-600">Version 1.2: 60 story points assigned, 40 completed.</p>
+                </div>
+
+                <!-- Recently Created Issues -->
+                <div>
+                    <h3 class="text-lg font-medium">Recently Created Issues</h3>
+                    <p class="text-gray-600">5 new issues created in last 7 days. Priority: 2 High, 3 Medium.</p>
+                </div>
+
+                <!-- Resolution Time Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Resolution Time Report</h3>
+                    <p class="text-gray-600">Average resolution time: 4.8 days. Trend: Improved by 10%.</p>
+                </div>
+
+                <!-- Version Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Version Report</h3>
+                    <p class="text-gray-600">Version 1.2 on track for release in 2 weeks. Risks: Integration testing delays.</p>
+                </div>
+
+                <!-- Group By Priority -->
+                <div>
+                    <h3 class="text-lg font-medium">Group By Priority</h3>
+                    <p class="text-gray-600">High: 10 issues, Medium: 15 issues, Low: 5 issues.</p>
+                </div>
+
+                <!-- Time Since Issues -->
+                <div>
+                    <h3 class="text-lg font-medium">Time Since Issues</h3>
+                    <p class="text-gray-600">Oldest open issue: 14 days. Average time since creation: 6 days.</p>
+                </div>
+
+                <!-- Release Burndown -->
+                <div>
+                    <h3 class="text-lg font-medium">Release Burndown</h3>
+                    <p class="text-gray-600">Remaining work: 150 story points. Projected completion: 3 sprints.</p>
+                </div>
+
+                <!-- Sprint Health -->
+                <div>
+                    <h3 class="text-lg font-medium">Sprint Health</h3>
+                    <p class="text-gray-600">Overall health: Green. Risks: Potential scope creep in next sprint.</p>
+                </div>
+
+                <!-- Days in Column Report -->
+                <div>
+                    <h3 class="text-lg font-medium">Days in Column Report</h3>
+                    <p class="text-gray-600">Average time in 'In Progress': 3 days. Bottlenecks: Testing phase (5 days).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sprint Burndown Chart
+        const sprintBurndownCtx = document.getElementById('sprintBurndownChart').getContext('2d');
+        new Chart(sprintBurndownCtx, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                datasets: [{
+                    label: 'Remaining Story Points',
+                    data: [50, 45, 38, 30, 20, 10, 0],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                    x: { title: { display: true, text: 'Sprint Days' } }
+                }
+            }
+        });
+
+        // Burnup Chart
+        const burnupCtx = document.getElementById('burnupChart').getContext('2d');
+        new Chart(burnupCtx, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                datasets: [{
+                    label: 'Completed Story Points',
+                    data: [0, 5, 12, 20, 30, 40, 50],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                    x: { title: { display: true, text: 'Sprint Days' } }
+                }
+            }
+        });
+
+        // Task Status Chart
+        const taskStatusCtx = document.getElementById('taskStatusChart').getContext('2d');
+        new Chart(taskStatusCtx, {
+            type: 'pie',
+            data: {
+                labels: ['To Do', 'In Progress', 'Done'],
+                datasets: [{
+                    data: [10, 15, 25],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Team Velocity Chart
+        const teamVelocityCtx = document.getElementById('teamVelocityChart').getContext('2d');
+        new Chart(teamVelocityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'],
+                datasets: [{
+                    label: 'Story Points',
+                    data: [25, 30, 32, 28],
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                    x: { title: { display: true, text: 'Sprints' } }
+                }
+            }
+        });
+
+        // Risk Distribution Chart
+        const riskDistributionCtx = document.getElementById('riskDistributionChart').getContext('2d');
+        new Chart(riskDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['High', 'Medium', 'Low'],
+                datasets: [{
+                    data: [5, 10, 15],
+                    backgroundColor: ['#FF4444', '#FFBB33', '#00C851']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Cycle Time Chart
+        const cycleTimeCtx = document.getElementById('cycleTimeChart').getContext('2d');
+        new Chart(cycleTimeCtx, {
+            type: 'line',
+            data: {
+                labels: ['Task 1', 'Task 2', 'Task 3', 'Task 4'],
+                datasets: [{
+                    label: 'Cycle Time (Days)',
+                    data: [4, 3.5, 5, 4.2],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Days' } },
+                    x: { title: { display: true, text: 'Tasks' } }
+                }
+            }
+        });
+
+        // Team Workload Chart
+        const teamWorkloadCtx = document.getElementById('teamWorkloadChart').getContext('2d');
+        new Chart(teamWorkloadCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Alice', 'Bob', 'Charlie', 'Diana'],
+                datasets: [{
+                    label: 'Hours Assigned',
+                    data: [40, 38, 35, 42],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                    x: { title: { display: true, text: 'Team Members' } }
+                }
+            }
+        });
+
+        // Epic Burndown Chart
+        const epicBurndownCtx = document.getElementById('epicBurndownChart').getContext('2d');
+        new Chart(epicBurndownCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [{
+                    label: 'Remaining Story Points',
+                    data: [100, 80, 50, 20],
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Story Points' } },
+                    x: { title: { display: true, text: 'Weeks' } }
+                }
+            }
+        });
+
+        // Control Chart
+        const controlChartCtx = document.getElementById('controlChart').getContext('2d');
+        new Chart(controlChartCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Cycle Time',
+                    data: [
+                        { x: 1, y: 4 },
+                        { x: 2, y: 3.5 },
+                        { x: 3, y: 5 },
+                        { x: 4, y: 4.2 }
+                    ],
+                    backgroundColor: 'rgba(75, 192, 192, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Cycle Time (Days)' } },
+                    x: { title: { display: true, text: 'Tasks' } }
+                }
+            }
+        });
+
+        // Cumulative Flow Diagram
+        const cumulativeFlowCtx = document.getElementById('cumulativeFlowChart').getContext('2d');
+        new Chart(cumulativeFlowCtx, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'],
+                datasets: [
+                    {
+                        label: 'To Do',
+                        data: [30, 25, 20, 15, 10],
+                        borderColor: '#FF6384',
+                        fill: true,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'In Progress',
+                        data: [5, 10, 15, 15, 10],
+                        borderColor: '#36A2EB',
+                        fill: true,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Done',
+                        data: [0, 5, 10, 15, 25],
+                        borderColor: '#FFCE56',
+                        fill: true,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Tasks' } },
+                    x: { title: { display: true, text: 'Days' } }
+                }
+            }
+        });
+
+        // Workload Pie Chart
+        const workloadPieCtx = document.getElementById('workloadPieChart').getContext('2d');
+        new Chart(workloadPieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Development', 'Testing', 'Design', 'Review'],
+                datasets: [{
+                    data: [40, 30, 20, 10],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Issue Type Distribution Chart
+        const issueTypeCtx = document.getElementById('issueTypeChart').getContext('2d');
+        new Chart(issueTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Bug', 'Feature', 'Task', 'Improvement'],
+                datasets: [{
+                    data: [15, 20, 10, 5],
+                    backgroundColor: ['#FF4444', '#00C851', '#FFBB33', '#9966FF']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Download Charts Functionality
+        document.getElementById('download-charts').addEventListener('click', function() {
+            const charts = [
+                'sprintBurndownChart', 'burnupChart', 'taskStatusChart', 'teamVelocityChart',
+                'riskDistributionChart', 'cycleTimeChart', 'teamWorkloadChart', 'epicBurndownChart',
+                'controlChart', 'cumulativeFlowChart', 'workloadPieChart', 'issueTypeChart'
+            ];
+            charts.forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                html2canvas(canvas).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `${chartId}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

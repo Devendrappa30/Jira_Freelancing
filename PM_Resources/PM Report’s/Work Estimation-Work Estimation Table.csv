@@ -1,0 +1,35 @@
+WBS Level,Task Name,Owner,Complexity,Estimated Effort (Person-Days)
+1.1,Salesforce Environment Setup,Salesforce Admin,M,10
+1.1.1,Development Environment Setup,Salesforce Admin,L,3
+1.1.2,Testing Environment Setup,Salesforce Admin,L,3
+1.1.3,Production Environment Setup,Salesforce Admin,M,4
+1.2,Requirements Documentation,Business Analyst,H,15
+1.2.1,Stakeholder Interviews,Business Analyst,L,5
+1.2.2,Requirement Workshops,Business Analyst,L,5
+1.2.3,User Story Documentation,Business Analyst,L,5
+1.3,Solution Design,Solution Architect,H,20
+1.3.1,Data Modeling,Solution Architect,M,6
+1.3.2,Security Design,Security Architect,M,6
+1.3.3,Integration Design,Integration Architect,H,8
+1.4,Configuration,Salesforce Consultant,H,25
+1.4.1,Workflow Configuration,Salesforce Consultant,M,7
+1.4.2,Validation Rules,Salesforce Consultant,M,8
+1.4.3,Custom Objects and Fields,Salesforce Consultant,M,10
+1.5,Data Migration,Data Migration Lead,H,15
+1.5.1,Data Cleaning,Data Analyst,M,5
+1.5.2,Migration Strategy Development,Data Migration Lead,M,5
+1.5.3,Execution of Migration,Data Migration Lead,M,5
+1.6,Integration Development,Integration Developer,H,20
+1.6.1,API Configuration,Integration Developer,M,7
+1.6.2,Middleware Setup,Integration Developer,M,7
+1.6.3,Testing and Validation of Integrations,QA Engineer,M,6
+1.7,Testing,QA Lead,H,20
+1.7.1,Unit Testing,QA Engineer,M,7
+1.7.2,System Testing,QA Engineer,M,7
+1.7.3,User Acceptance Testing (UAT),Business Analyst,M,6
+1.8,Training,Training Lead,M,10
+1.8.1,Training Material Development,Training Lead,M,5
+1.8.2,Training Sessions,Training Lead,M,5
+1.9,Go-Live and Support,Deployment Lead,M,10
+1.9.1,Production Deployment,Deployment Lead,M,5
+1.9.2,Hypercare Support,Support Team,M,5

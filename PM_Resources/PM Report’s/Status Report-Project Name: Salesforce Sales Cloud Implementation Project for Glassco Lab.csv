@@ -1,0 +1,26 @@
+Project Name:,Salesforce Sales Cloud Implementation Project for Glassco Lab,,,,
+Date:,2/4/25,,,,
+Status:,🟢 Green (On Track) / 🟠 Amber (At Risk) / 🔴 Red (Critical) / ⚠️ Escalated,,,,
+Summary,,,,,Overall Status (RAG)
+"The Salesforce Sales Cloud Implementation Project for Glassco Lab is progressing as planned. The team has successfully completed key milestones related to configuration and initial integration tasks. Some challenges have arisen concerning data migration, but they are being managed effectively. The overall project status is currently on track with no major deviations from the timeline or budget.",,,,,Green
+Completed Tasks and Milestones,,,,,
+Description,,Date,Status,Owner,Comments
+Project Kickoff,,[Kickoff Date],Completed,Project Sponsor,Successful project initiation with all key stakeholders involved.
+Salesforce Environment Setup,,[Setup Date],Completed,Development Team,Salesforce Sales Cloud environment set up and configured according to initial requirements.
+Initial Data Migration,,[Migration Date],Completed,Development Team,"Migrated 50% of existing data to Salesforce, no major issues identified."
+ERP System Integration Phase 1,,[Integration Date],Completed,ERP System Vendor,Successfully integrated key modules; phase 2 to start next week.
+User Requirements Gathering,,[Requirements Date],Completed,Product Owner,Completed requirement gathering sessions with the Sales team.
+Upcoming Tasks and Milestones,,,,,
+Description,,Date,Status,Owner,Comments
+Final Data Migration,,[Upcoming Date],In Progress,Development Team,"Final data migration to be completed, with thorough validation planned."
+User Training Sessions,,[Training Date],Not Started,Scrum Master,Training sessions scheduled to ensure smooth adoption.
+Go-Live Planning and Execution,,[Go-Live Date],Not Started,Scrum Master/Development Team,Detailed go-live plan to be finalized and executed.
+Final Integration Testing,,[Testing Date],Not Started,QA Lead,Comprehensive testing to ensure all systems are integrated and working properly.
+Post-Go-Live Support Planning,,[Support Date],Not Started,Scrum Master,Planning for support phase post-implementation to ensure continuity.
+Top Risks and Issues,,,,,
+Issue,,,Impact,Owner,Action
+Data Migration Complexity,,,High,Development Team,Additional resources allocated to ensure smooth data migration. Regular check-ins scheduled.
+User Adoption Concerns,,,Medium,Scrum Master,Early engagement and comprehensive training to be provided. User feedback loop established.
+ERP Integration Delays,,,High,ERP System Vendor,Contingency plans in place. Vendor engagement increased to accelerate progress.
+Salesforce Customization,,,Medium,Product Owner,Prioritization of key features to ensure critical functionalities are delivered on time.
+Budget Overruns,,,Medium,Project Sponsor,Regular budget reviews to monitor expenses and adjust as needed.

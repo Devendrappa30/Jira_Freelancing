@@ -1,0 +1,11 @@
+Scope of Work for the Salesforce Sales Cloud implementation project,,,
+Deliverable,Description,In-Scope Activities,Out-of-Scope Activities
+Salesforce Environment Setup,"Initial setup of Salesforce environments (development, testing, production)","Configuration of environments, basic settings",Custom hardware setups
+Requirements Documentation,Collection and documentation of business requirements,"Stakeholder interviews, workshops, user stories",Requirements beyond Sales Cloud scope
+Solution Design,"Design of system architecture, data model, integrations, and security model","Data modeling, security design, integration points",Custom coding outside Salesforce platform
+Configuration,"Setting up Sales Cloud features (leads, opportunities, accounts, contacts), workflows, and automation","Workflow configuration, validation rules, custom objects/fields",External system configurations
+Data Migration,Planning and execution of data migration from legacy systems,"Data cleaning, migration strategy, execution",Data cleaning services outside scope
+Integration Development,"Development of integrations with external systems (e.g., ERP, marketing automation)","API configurations, middleware setup",Building new external systems
+Testing,Comprehensive testing of system components and end-to-end processes,"Unit testing, system testing, UAT",Load/performance testing beyond scope
+Training,Development and delivery of training materials for end-users,"Training sessions, user manuals",Continuous training post go-live
+Go-Live and Support,Deployment of the solution and post-go-live support,"Production deployment, hypercare support",Ongoing support beyond initial hypercare period

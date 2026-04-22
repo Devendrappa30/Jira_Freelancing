@@ -1,0 +1,4 @@
+Metric,Target,Actual,Status,Actions
+Cycle Time (days),≤ 5,6,🟡 Needs Attention,Optimize task assignments.
+Sprint Goal Achievement,90%,85%,🟡 Needs Attention,Improve backlog grooming.
+Resource Utilization,85%,80%,🟡 Needs Attention,Improve workload balancing.

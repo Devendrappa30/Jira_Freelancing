@@ -1,0 +1,21 @@
+,"Project Plant Pals: 
+Employee Training Communication Plan",,,,,,,
+Recipients,Type of Communication,Frequency,Sender/Owner,Key Dates,Delivery Method,Goal,Resource Links,Notes
+Core Team,Planning Meeting,Daily,Project Manager,Every day at 3pm,In Person,Project planning and task updates to make sure the team stays on track,[link to meeting agenda and notes],"If needed, check in with manager about any high-level questions before meetings."
+Software and Equipment Vendor,Planning Meeting,One time,Core Team: HR Specialist & Training Manager,"Half day, Friday before development of the training plan begins; confirm date and time three days in advance",In Person,Go over the training manual in order to create an effective training plan for Office Green's employees,[link to vendor SoW],This meeting needs to take place before the end of the vendor's SoW. Make sure the HR Specialist & Training Manager check in with fulfillment and inventory team members about the outcome of the meeting.
+Human Resources,Planning Check-In,Weekly,Core Team: HR Specialist,Also send reminders (via email) the day before each training,In Person,Project planning assistance; provide support during the training session,,Additional communication on an as-needed basis
+Facilities,Planning Check-In,Weekly,Core Team: Administrative Coordinator,Tuesdays at 2pm,Phone Call,"Reserve rooms, spaces, and equipment needed for employee training",[link to room and equipment reservation form],
+Print Shop,Planning Check-In,Weekly,Core Team: Administrative Coordinator,"Thursdays, including the day before the event",Phone Call,Coordinate on the printing and delivery of training manuals for employees,[link to printing order form],
+Office Green employees,Informational Update,Weekly,Core Team: Training Manager,"Fridays, including the Friday before training sessions begin",Email (from company address),"Communicate schedules, locations, and other necessary details to trainees",[trainee email list],Set up automated reminder emails
+Office Green employees,Training,Daily,Core Team: Training Manager,"Each day for ten days, starting at 10am",In Person,Train employees to use the supply chain management software and equipment,[link to training schedule],
+Office Green employees,Survey,One time,Core Team: Training Manager,"The first business day after trainings end, with two follow-up reminders",Email (from company address),Post-training survey,[trainee email list],Discuss results at next team meeting
+Your Manager,Status Update,Weekly,Project Manager,Monday afternoons at 2pm,In Person,"Update on event planning, ask questions, and get feedback",,Come prepared with a brief update and specific questions
+Senior Leaders: Director of Operations and the Director of Product (and CC your manager),Status Update,One time,Project Manager,Debrief the week after the event ,Email (from individual address),High-level information and general updates,[link to folder with training notes and survey results],
+Development Team,Daily Stand-up Meeting,Daily (Weekdays),Scrum Master,,In-person/Video Call,"Discuss progress, impediments, and plans for the day",,
+"Development Team, PO",Sprint Planning Meeting,Bi-weekly,Scrum Master,,In-person/Video Call,Plan tasks for the upcoming sprint,,
+"Development Team, PO, Stakeholders",Sprint Review Meeting,Bi-weekly,Scrum Master,,In-person/Video Call,Demonstrate completed work to stakeholders,,
+Development Team,Sprint Retrospective Meeting,Bi-weekly,Scrum Master,,In-person/Video Call,Reflect on the sprint and identify improvements,,
+"Development Team, PO",Backlog Refinement Session,Weekly,Product Owner,,In-person/Video Call,Prioritize and refine the product backlog,,
+All Stakeholders,Stakeholder Updates,Bi-weekly,Project Manager,,Email,Inform stakeholders of project status and updates,,
+Stakeholders,Quarterly Stakeholder Surveys,Quarterly,Project Manager,,Online Survey,Gather feedback from stakeholders,,
+Relevant Stakeholders,Ad-hoc Escalation Meetings,As needed,Scrum Master/Product Owner,,In-person/Video Call,Address critical issues,,

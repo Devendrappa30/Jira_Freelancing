@@ -1,0 +1,233 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waterfall Project Management Metrics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+    .slide { width: 800px; height: 450px; margin: 20px auto; background: #fff; border: 1px solid #ccc; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #333; font-size: 24px; margin-bottom: 10px; }
+    p { text-align: center; color: #555; font-size: 14px; margin-bottom: 20px; }
+    canvas { max-width: 100%; height: auto; }
+    .slide-nav { text-align: center; margin: 10px 0; }
+    .slide-nav button { padding: 10px 20px; margin: 5px; background: #4e79a7; color: #fff; border: none; cursor: pointer; }
+    .slide-nav button:hover { background: #f28e2c; }
+  </style>
+</head>
+<body>
+  <div class="slide" id="slide1">
+    <h1>Gantt Chart: Software Project Timeline</h1>
+    <p>Tracks project phases, dependencies, and milestone progress to ensure schedule adherence.</p>
+    <canvas id="ganttChart"></canvas>
+  </div>
+  <div class="slide" id="slide2" style="display: none;">
+    <h1>Budget Burndown: $500,000 Project</h1>
+    <p>Monitors spending against the planned budget, highlighting cost variances.</p>
+    <canvas id="budgetChart"></canvas>
+  </div>
+  <div class="slide" id="slide3" style="display: none;">
+    <h1>Milestone Completion Rate</h1>
+    <p>Shows percentage of milestones completed on time, reflecting project progress.</p>
+    <canvas id="milestoneChart"></canvas>
+  </div>
+  <div class="slide" id="slide4" style="display: none;">
+    <h1>Quality Metrics: Test Case Pass Rates</h1>
+    <p>Displays quality of deliverables across project phases, ensuring high standards.</p>
+    <canvas id="qualityChart"></canvas>
+  </div>
+  <div class="slide" id="slide5" style="display: none;">
+    <h1>Risk Management Status</h1>
+    <p>Visualizes mitigated risks across categories, showcasing proactive management.</p>
+    <canvas id="riskChart"></canvas>
+  </div>
+  <div class="slide-nav">
+    <button onclick="showSlide(1)">Slide 1</button>
+    <button onclick="showSlide(2)">Slide 2</button>
+    <button onclick="showSlide(3)">Slide 3</button>
+    <button onclick="showSlide(4)">Slide 4</button>
+    <button onclick="showSlide(5)">Slide 5</button>
+  </div>
+
+  <script>
+    function showSlide(slideNumber) {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`slide${i}`).style.display = i === slideNumber ? 'block' : 'none';
+      }
+    }
+
+    // Gantt Chart
+    new Chart(document.getElementById('ganttChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'],
+        datasets: [{
+          label: 'Planned Duration',
+          data: [
+            { x: [0, 30], y: 1 },
+            { x: [30, 60], y: 2 },
+            { x: [60, 120], y: 3 },
+            { x: [120, 150], y: 4 },
+            { x: [150, 160], y: 5 }
+          ],
+          backgroundColor: '#4e79a7'
+        }, {
+          label: 'Actual Progress',
+          data: [
+            { x: [0, 30], y: 1 },
+            { x: [30, 65], y: 2 },
+            { x: [65, 130], y: 3 },
+            { x: [130, 155], y: 4 },
+            { x: [155, 160], y: 5 }
+          ],
+          backgroundColor: '#f28e2c'
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        scales: {
+          x: { title: { display: true, text: 'Days' } },
+          y: { title: { display: true, text: 'Phases' } }
+        },
+        plugins: {
+          title: { display: true, text: 'Gantt Chart: Software Project Timeline' },
+          legend: { position: 'top' }
+        }
+      }
+    });
+
+    // Budget Burndown Chart
+    new Chart(document.getElementById('budgetChart'), {
+      type: 'line',
+      data: {
+        labels: ['Month 1', 'Month 2', 'Month 3', 'Month 4', 'Month 5', 'Month 6'],
+        datasets: [{
+          label: 'Planned Budget',
+          data: [500000, 400000, 300000, 200000, 100000, 0],
+          borderColor: '#4e79a7',
+          fill: false
+        }, {
+          label: 'Actual Spending',
+          data: [500000, 420000, 320000, 230000, 120000, 25000],
+          borderColor: '#f28e2c',
+          fill: false
+        }]
+      },
+      options: {
+        scales: {
+          y: { title: { display: true, text: 'Budget ($)' }, beginAtZero: true },
+          x: { title: { display: true, text: 'Months' } }
+        },
+        plugins: {
+          title: { display: true, text: 'Budget Burndown: $500,000 Project' },
+          legend: { position: 'top' }
+        }
+      }
+    });
+
+    // Milestone Completion Pie Chart
+    new Chart(document.getElementById('milestoneChart'), {
+      type: 'pie',
+      data: {
+        labels: ['On Time', 'Delayed'],
+        datasets: [{
+          data: [90, 10],
+          backgroundColor: ['#4e79a7', '#f28e2c']
+        }]
+      },
+      options: {
+        plugins: {
+          title: { display: true, text: 'Milestone Completion Rate' },
+          legend: { position: 'top' }
+        }
+      }
+    });
+
+    // Quality Metrics Bar Chart
+    new Chart(document.getElementById('qualityChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Requirements', 'Design', 'Implementation', 'Testing'],
+        datasets: [{
+          label: 'Test Case Pass Rate (%)',
+          data: [100, 95, 90, 98],
+          backgroundColor: '#4e79a7'
+        }]
+      },
+      options: {
+        scales: {
+          y: { title: { display: true, text: 'Pass Rate (%)' }, beginAtZero: true },
+          x: { title: { display: true, text: 'Phases' } }
+        },
+        plugins: {
+          title: { display: true, text: 'Quality Metrics: Test Case Pass Rates' },
+          legend: { display: false }
+        }
+      }
+    });
+
+    // Risk Status Radar Chart
+    new Chart(document.getElementById('riskChart'), {
+      type: 'radar',
+      data: {
+        labels: ['Schedule Risks', 'Budget Risks', 'Resource Risks', 'Technical Risks', 'Vendor Risks'],
+        datasets: [{
+          label: 'Risk Status (Mitigated %)',
+          data: [80, 90, 75, 85, 70],
+          backgroundColor: 'rgba(78, 121, 167, 0.2)',
+          borderColor: '#4e79a7'
+        }]
+      },
+      options: {
+        scales: {
+          r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 100 }
+        },
+        plugins: {
+          title: { display: true, text: 'Risk Management Status' },
+          legend: { position: 'top' }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

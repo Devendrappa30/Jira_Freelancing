@@ -1,0 +1,797 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Support Kanban Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .health-indicator {
+            text-align: center;
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+        }
+        .health-green { background-color: #28A745; }
+        .health-yellow { background-color: #FFC107; }
+        .health-red { background-color: #DC3545; }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        select {
+            padding: 10px;
+            margin: 0 10px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>IT Support Kanban Dashboard</h1>
+    <div class="controls">
+        <label for="periodSelect">Select Period: </label>
+        <select id="periodSelect" onchange="updateCharts()">
+            <option value="1">Week 1</option>
+            <option value="2">Week 2</option>
+        </select>
+        <button onclick="downloadCharts()">Download Charts as PNG</button>
+    </div>
+    <div class="dashboard">
+        <div class="chart-container">
+            <h2>Ticket Burndown</h2>
+            <canvas id="burndownChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Ticket Burnup</h2>
+            <canvas id="burnupChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Ticket Status Report</h2>
+            <canvas id="ticketStatusChart"></canvas>
+            <table id="ticketStatusTable">
+                <thead><tr><th>Status</th><th>Tickets</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Priority Ticket Burndown</h2>
+            <canvas id="priorityBurndownChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>SLA Compliance Plan</h2>
+            <canvas id="slaComplianceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Control Chart</h2>
+            <canvas id="controlChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Average Ticket Age</h2>
+            <canvas id="averageAgeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Time Tracking Report</h2>
+            <canvas id="timeTrackingChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Time Sheet Report</h2>
+            <canvas id="timeSheetChart"></canvas>
+            <table id="timeSheetTable">
+                <thead><tr><th>Member</th><th>Hours Logged</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Created vs Resolved Tickets</h2>
+            <canvas id="createdVsResolvedChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Workload Pie Chart</h2>
+            <canvas id="workloadPieChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Ticket Type Distribution</h2>
+            <canvas id="ticketTypeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Service Category Workload</h2>
+            <canvas id="serviceCategoryWorkloadChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Throughput Chart</h2>
+            <canvas id="throughputChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Recently Created Tickets</h2>
+            <canvas id="recentlyCreatedChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Cumulative Flow Diagram</h2>
+            <canvas id="cumulativeFlowChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Resolution Time Report</h2>
+            <canvas id="resolutionTimeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Service Category Report</h2>
+            <canvas id="serviceCategoryReportChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Group By Priority</h2>
+            <canvas id="groupByChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Major Incident Report</h2>
+            <canvas id="majorIncidentChart"></canvas>
+            <table id="majorIncidentTable">
+                <thead><tr><th>Incident</th><th>Resolved</th><th>Open</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Time Since Tickets</h2>
+            <canvas id="timeSinceTicketsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Backlog Burndown</h2>
+            <canvas id="backlogBurndownChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Kanban Health</h2>
+            <div id="healthIndicator" class="health-indicator"></div>
+        </div>
+        <div class="chart-container">
+            <h2>Days in Column Report</h2>
+            <canvas id="daysInColumnChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for IT support Kanban (two weeks)
+        const periodData = {
+            1: {
+                burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'], tickets: [50, 45, 38, 30, 20], ideal: [50, 40, 30, 20, 10] },
+                burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'], tickets: [0, 5, 12, 20, 30] },
+                ticketStatus: { open: 15, inProgress: 10, resolved: 25 },
+                priorityBurndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'], tickets: [20, 15, 10, 5, 2] },
+                slaCompliance: { incident: 95, serviceRequest: 90, problem: 85 },
+                control: [{ x: 'Ticket 1', y: 2 }, { x: 'Ticket 2', y: 4 }, { x: 'Ticket 3', y: 3 }, { x: 'Ticket 4', y: 5 }],
+                averageAge: { incident: 5, serviceRequest: 7, problem: 10 },
+                timeTracking: { estimated: 100, actual: 90 },
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], tickets: [20, 15, 25, 10], hours: [30, 25, 35, 20] },
+                createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [10, 8, 6, 4], resolved: [8, 9, 7, 10] },
+                ticketTypes: { incident: 20, serviceRequest: 15, problem: 10 },
+                serviceCategoryWorkload: { network: 25, software: 20 },
+                throughput: 30,
+                recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [10, 8, 6, 4] },
+                cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], backlog: [30, 25, 20, 15], inProgress: [10, 15, 12, 10], resolved: [10, 15, 20, 25] },
+                resolutionTime: { incident: 3, serviceRequest: 5, problem: 7 },
+                serviceCategoryReport: { network: { resolved: 20, open: 5 }, software: { resolved: 15, open: 5 } },
+                groupByPriority: { low: 20, medium: 15, high: 10 },
+                majorIncident: { incident1: { resolved: 5, open: 2 }, incident2: { resolved: 3, open: 4 } },
+                timeSinceTickets: { statuses: ['Open', 'In Progress', 'Resolved'], days: [7, 4, 1] },
+                backlogBurndown: { weeks: ['Week 1', 'Week 2'], tickets: [100, 70] },
+                daysInColumn: { backlog: 3, inProgress: 4, resolved: 1 },
+                health: 'Green'
+            },
+            2: {
+                burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'], tickets: [60, 50, 40, 30, 25], ideal: [60, 48, 36, 24, 12] },
+                burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'], tickets: [0, 10, 20, 30, 35] },
+                ticketStatus: { open: 12, inProgress: 8, resolved: 30 },
+                priorityBurndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'], tickets: [15, 12, 8, 4, 1] },
+                slaCompliance: { incident: 90, serviceRequest: 85, problem: 80 },
+                control: [{ x: 'Ticket 1', y: 3 }, { x: 'Ticket 2', y: 5 }, { x: 'Ticket 3', y: 4 }, { x: 'Ticket 4', y: 6 }],
+                averageAge: { incident: 6, serviceRequest: 8, problem: 12 },
+                timeTracking: { estimated: 120, actual: 110 },
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], tickets: [18, 20, 22, 12], hours: [28, 30, 32, 18] },
+                createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [12, 9, 7, 5], resolved: [10, 11, 9, 12] },
+                ticketTypes: { incident: 25, serviceRequest: 12, problem: 8 },
+                serviceCategoryWorkload: { network: 20, software: 25 },
+                throughput: 35,
+                recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [12, 9, 7, 5] },
+                cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], backlog: [25, 20, 15, 10], inProgress: [12, 15, 12, 8], resolved: [15, 20, 25, 30] },
+                resolutionTime: { incident: 4, serviceRequest: 6, problem: 8 },
+                serviceCategoryReport: { network: { resolved: 18, open: 7 }, software: { resolved: 20, open: 5 } },
+                groupByPriority: { low: 15, medium: 20, high: 8 },
+                majorIncident: { incident1: { resolved: 6, open: 1 }, incident2: { resolved: 4, open: 3 } },
+                timeSinceTickets: { statuses: ['Open', 'In Progress', 'Resolved'], days: [8, 5, 2] },
+                backlogBurndown: { weeks: ['Week 1', 'Week 2'], tickets: [70, 50] },
+                daysInColumn: { backlog: 4, inProgress: 5, resolved: 2 },
+                health: 'Yellow'
+            }
+        };
+
+        // Chart instances
+        let charts = {};
+
+        // Initialize charts
+        function initializeCharts(periodId = '1') {
+            const data = periodData[periodId];
+
+            // Ticket Burndown
+            if (charts.burndownChart) charts.burndownChart.destroy();
+            charts.burndownChart = new Chart(document.getElementById('burndownChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.burndown.days,
+                    datasets: [
+                        { label: 'Open Tickets', data: data.burndown.tickets, borderColor: '#FF5733', fill: false, tension: 0.1 },
+                        { label: 'Ideal Burndown', data: data.burndown.ideal, borderColor: '#888', borderDash: [5, 5], fill: false }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // Ticket Burnup
+            if (charts.burnupChart) charts.burnupChart.destroy();
+            charts.burnupChart = new Chart(document.getElementById('burnupChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.burnup.days,
+                    datasets: [
+                        { label: 'Resolved Tickets', data: data.burnup.tickets, borderColor: '#28A745', fill: false, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // Ticket Status Report
+            if (charts.ticketStatusChart) charts.ticketStatusChart.destroy();
+            charts.ticketStatusChart = new Chart(document.getElementById('ticketStatusChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Open', 'In Progress', 'Resolved'],
+                    datasets: [{
+                        label: 'Tickets',
+                        data: [data.ticketStatus.open, data.ticketStatus.inProgress, data.ticketStatus.resolved],
+                        backgroundColor: ['#FFCC00', '#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } }
+                    }
+                }
+            });
+            const ticketStatusTable = document.getElementById('ticketStatusTable').getElementsByTagName('tbody')[0];
+            ticketStatusTable.innerHTML = `
+                <tr><td>Open</td><td>${data.ticketStatus.open}</td></tr>
+                <tr><td>In Progress</td><td>${data.ticketStatus.inProgress}</td></tr>
+                <tr><td>Resolved</td><td>${data.ticketStatus.resolved}</td></tr>
+            `;
+
+            // Priority Ticket Burndown
+            if (charts.priorityBurndownChart) charts.priorityBurndownChart.destroy();
+            charts.priorityBurndownChart = new Chart(document.getElementById('priorityBurndownChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.priorityBurndown.days,
+                    datasets: [
+                        { label: 'High-Priority Tickets', data: data.priorityBurndown.tickets, borderColor: '#FF5733', fill: false, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // SLA Compliance Plan
+            if (charts.slaComplianceChart) charts.slaComplianceChart.destroy();
+            charts.slaComplianceChart = new Chart(document.getElementById('slaComplianceChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Incident', 'Service Request', 'Problem'],
+                    datasets: [{
+                        label: 'SLA Compliance (%)',
+                        data: [data.slaCompliance.incident, data.slaCompliance.serviceRequest, data.slaCompliance.problem],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Compliance (%)' } }
+                    }
+                }
+            });
+
+            // Control Chart
+            if (charts.controlChart) charts.controlChart.destroy();
+            charts.controlChart = new Chart(document.getElementById('controlChart').getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Cycle Time', data: data.control, backgroundColor: '#FF5733' },
+                        { label: 'Average', data: data.control.map(d => ({ x: d.x, y: 3.5 })), borderColor: '#888', borderDash: [5, 5], type: 'line' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Tickets' } },
+                        y: { beginAtZero: true, title: { display: true, text: 'Cycle Time (Days)' } }
+                    }
+                }
+            });
+
+            // Average Ticket Age
+            if (charts.averageAgeChart) charts.averageAgeChart.destroy();
+            charts.averageAgeChart = new Chart(document.getElementById('averageAgeChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Incident', 'Service Request', 'Problem'],
+                    datasets: [{
+                        label: 'Average Age (Days)',
+                        data: [data.averageAge.incident, data.averageAge.serviceRequest, data.averageAge.problem],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // Time Tracking Report
+            if (charts.timeTrackingChart) charts.timeTrackingChart.destroy();
+            charts.timeTrackingChart = new Chart(document.getElementById('timeTrackingChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Estimated', 'Actual'],
+                    datasets: [{
+                        label: 'Hours',
+                        data: [data.timeTracking.estimated, data.timeTracking.actual],
+                        backgroundColor: ['#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } }
+                    }
+                }
+            });
+
+            // Time Sheet Report
+            if (charts.timeSheetChart) charts.timeSheetChart.destroy();
+            charts.timeSheetChart = new Chart(document.getElementById('timeSheetChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.workload.members,
+                    datasets: [{
+                        label: 'Hours Logged',
+                        data: data.workload.hours,
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                        x: { title: { display: true, text: 'Team Members' } }
+                    }
+                }
+            });
+            const timeSheetTable = document.getElementById('timeSheetTable').getElementsByTagName('tbody')[0];
+            timeSheetTable.innerHTML = data.workload.members.map((m, i) => `<tr><td>${m}</td><td>${data.workload.hours[i]}</td></tr>`).join('');
+
+            // Created vs Resolved Tickets
+            if (charts.createdVsResolvedChart) charts.createdVsResolvedChart.destroy();
+            charts.createdVsResolvedChart = new Chart(document.getElementById('createdVsResolvedChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.createdVsResolved.days,
+                    datasets: [
+                        { label: 'Created', data: data.createdVsResolved.created, borderColor: '#FF5733', fill: false },
+                        { label: 'Resolved', data: data.createdVsResolved.resolved, borderColor: '#28A745', fill: false }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // Workload Pie Chart
+            if (charts.workloadPieChart) charts.workloadPieChart.destroy();
+            charts.workloadPieChart = new Chart(document.getElementById('workloadPieChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: data.workload.members,
+                    datasets: [{
+                        data: data.workload.tickets,
+                        backgroundColor: ['#FF5733', '#28A745', '#007BFF', '#FFC107']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Ticket Type Distribution
+            if (charts.ticketTypeChart) charts.ticketTypeChart.destroy();
+            charts.ticketTypeChart = new Chart(document.getElementById('ticketTypeChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Incident', 'Service Request', 'Problem'],
+                    datasets: [{
+                        data: [data.ticketTypes.incident, data.ticketTypes.serviceRequest, data.ticketTypes.problem],
+                        backgroundColor: ['#FF5733', '#007BFF', '#FFC107']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Service Category Workload
+            if (charts.serviceCategoryWorkloadChart) charts.serviceCategoryWorkloadChart.destroy();
+            charts.serviceCategoryWorkloadChart = new Chart(document.getElementById('serviceCategoryWorkloadChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Network', 'Software'],
+                    datasets: [{
+                        label: 'Tickets',
+                        data: [data.serviceCategoryWorkload.network, data.serviceCategoryWorkload.software],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } }
+                    }
+                }
+            });
+
+            // Throughput Chart
+            if (charts.throughputChart) charts.throughputChart.destroy();
+            charts.throughputChart = new Chart(document.getElementById('throughputChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(periodData).map(id => `Week ${id}`),
+                    datasets: [{
+                        label: 'Tickets Resolved',
+                        data: Object.values(periodData).map(d => d.throughput),
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Weeks' } }
+                    }
+                }
+            });
+
+            // Recently Created Tickets
+            if (charts.recentlyCreatedChart) charts.recentlyCreatedChart.destroy();
+            charts.recentlyCreatedChart = new Chart(document.getElementById('recentlyCreatedChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.recentlyCreated.days,
+                    datasets: [{
+                        label: 'Tickets Created',
+                        data: data.recentlyCreated.count,
+                        backgroundColor: '#FF5733'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // Cumulative Flow Diagram
+            if (charts.cumulativeFlowChart) charts.cumulativeFlowChart.destroy();
+            charts.cumulativeFlowChart = new Chart(document.getElementById('cumulativeFlowChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.cumulativeFlow.days,
+                    datasets: [
+                        { label: 'Backlog', data: data.cumulativeFlow.backlog, backgroundColor: '#FFCC00', fill: true },
+                        { label: 'In Progress', data: data.cumulativeFlow.inProgress, backgroundColor: '#007BFF', fill: true },
+                        { label: 'Resolved', data: data.cumulativeFlow.resolved, backgroundColor: '#28A745', fill: true }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // Resolution Time Report
+            if (charts.resolutionTimeChart) charts.resolutionTimeChart.destroy();
+            charts.resolutionTimeChart = new Chart(document.getElementById('resolutionTimeChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Incident', 'Service Request', 'Problem'],
+                    datasets: [{
+                        label: 'Resolution Time (Days)',
+                        data: [data.resolutionTime.incident, data.resolutionTime.serviceRequest, data.resolutionTime.problem],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // Service Category Report
+            if (charts.serviceCategoryReportChart) charts.serviceCategoryReportChart.destroy();
+            charts.serviceCategoryReportChart = new Chart(document.getElementById('serviceCategoryReportChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Network', 'Software'],
+                    datasets: [
+                        { label: 'Resolved', data: [data.serviceCategoryReport.network.resolved, data.serviceCategoryReport.software.resolved], backgroundColor: '#28A745' },
+                        { label: 'Open', data: [data.serviceCategoryReport.network.open, data.serviceCategoryReport.software.open], backgroundColor: '#FF5733' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } }
+                    }
+                }
+            });
+
+            // Group By Priority
+            if (charts.groupByChart) charts.groupByChart.destroy();
+            charts.groupByChart = new Chart(document.getElementById('groupByChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Low', 'Medium', 'High'],
+                    datasets: [{
+                        label: 'Tickets',
+                        data: [data.groupByPriority.low, data.groupByPriority.medium, data.groupByPriority.high],
+                        backgroundColor: ['#28A745', '#FFC107', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } }
+                    }
+                }
+            });
+
+            // Major Incident Report
+            if (charts.majorIncidentChart) charts.majorIncidentChart.destroy();
+            charts.majorIncidentChart = new Chart(document.getElementById('majorIncidentChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Incident 1', 'Incident 2'],
+                    datasets: [
+                        { label: 'Resolved', data: [data.majorIncident.incident1.resolved, data.majorIncident.incident2.resolved], backgroundColor: '#28A745' },
+                        { label: 'Open', data: [data.majorIncident.incident1.open, data.majorIncident.incident2.open], backgroundColor: '#FF5733' }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } }
+                    }
+                }
+            });
+            const majorIncidentTable = document.getElementById('majorIncidentTable').getElementsByTagName('tbody')[0];
+            majorIncidentTable.innerHTML = `
+                <tr><td>Incident 1</td><td>${data.majorIncident.incident1.resolved}</td><td>${data.majorIncident.incident1.open}</td></tr>
+                <tr><td>Incident 2</td><td>${data.majorIncident.incident2.resolved}</td><td>${data.majorIncident.incident2.open}</td></tr>
+            `;
+
+            // Time Since Tickets
+            if (charts.timeSinceTicketsChart) charts.timeSinceTicketsChart.destroy();
+            charts.timeSinceTicketsChart = new Chart(document.getElementById('timeSinceTicketsChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.timeSinceTickets.statuses,
+                    datasets: [{
+                        label: 'Average Days Since Creation',
+                        data: data.timeSinceTickets.days,
+                        borderColor: '#007BFF',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } },
+                        x: { title: { display: true, text: 'Status' } }
+                    }
+                }
+            });
+
+            // Backlog Burndown
+            if (charts.backlogBurndownChart) charts.backlogBurndownChart.destroy();
+            charts.backlogBurndownChart = new Chart(document.getElementById('backlogBurndownChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.backlogBurndown.weeks,
+                    datasets: [
+                        { label: 'Open Tickets', data: data.backlogBurndown.tickets, borderColor: '#FF5733', fill: false, tension: 0.1 }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tickets' } },
+                        x: { title: { display: true, text: 'Weeks' } }
+                    }
+                }
+            });
+
+            // Kanban Health Indicator
+            const healthIndicator = document.getElementById('healthIndicator');
+            healthIndicator.textContent = `Kanban Health: ${data.health}`;
+            healthIndicator.className = `health-indicator health-${data.health.toLowerCase()}`;
+
+            // Days in Column Report
+            if (charts.daysInColumnChart) charts.daysInColumnChart.destroy();
+            charts.daysInColumnChart = new Chart(document.getElementById('daysInColumnChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Backlog', 'In Progress', 'Resolved'],
+                    datasets: [{
+                        label: 'Average Days',
+                        data: [data.daysInColumn.backlog, data.daysInColumn.inProgress, data.daysInColumn.resolved],
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+        }
+
+        // Update charts based on period selection
+        function updateCharts() {
+            const periodId = document.getElementById('periodSelect').value;
+            initializeCharts(periodId);
+        }
+
+        // Download charts as PNG
+        function downloadCharts() {
+            const chartList = [
+                { canvas: document.getElementById('burndownChart'), name: 'burndown' },
+                { canvas: document.getElementById('burnupChart'), name: 'burnup' },
+                { canvas: document.getElementById('ticketStatusChart'), name: 'ticketStatus' },
+                { canvas: document.getElementById('priorityBurndownChart'), name: 'priorityBurndown' },
+                { canvas: document.getElementById('slaComplianceChart'), name: 'slaCompliance' },
+                { canvas: document.getElementById('controlChart'), name: 'control' },
+                { canvas: document.getElementById('averageAgeChart'), name: 'averageAge' },
+                { canvas: document.getElementById('timeTrackingChart'), name: 'timeTracking' },
+                { canvas: document.getElementById('timeSheetChart'), name: 'timeSheet' },
+                { canvas: document.getElementById('createdVsResolvedChart'), name: 'createdVsResolved' },
+                { canvas: document.getElementById('workloadPieChart'), name: 'workloadPie' },
+                { canvas: document.getElementById('ticketTypeChart'), name: 'ticketType' },
+                { canvas: document.getElementById('serviceCategoryWorkloadChart'), name: 'serviceCategoryWorkload' },
+                { canvas: document.getElementById('throughputChart'), name: 'throughput' },
+                { canvas: document.getElementById('recentlyCreatedChart'), name: 'recentlyCreated' },
+                { canvas: document.getElementById('cumulativeFlowChart'), name: 'cumulativeFlow' },
+                { canvas: document.getElementById('resolutionTimeChart'), name: 'resolutionTime' },
+                { canvas: document.getElementById('serviceCategoryReportChart'), name: 'serviceCategoryReport' },
+                { canvas: document.getElementById('groupByChart'), name: 'groupBy' },
+                { canvas: document.getElementById('majorIncidentChart'), name: 'majorIncident' },
+                { canvas: document.getElementById('timeSinceTicketsChart'), name: 'timeSinceTickets' },
+                { canvas: document.getElementById('backlogBurndownChart'), name: 'backlogBurndown' },
+                { canvas: document.getElementById('daysInColumnChart'), name: 'daysInColumn' }
+            ];
+            chartList.forEach(chart => {
+                const url = chart.canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `it_support_kanban_${chart.name}.png`;
+                link.click();
+            });
+        }
+
+        // Initialize with Week 1
+        initializeCharts('1');
+    </script>
+</body>
+</html>

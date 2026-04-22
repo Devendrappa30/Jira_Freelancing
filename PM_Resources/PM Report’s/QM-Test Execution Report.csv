@@ -1,0 +1,5 @@
+Test Type,Total Cases,Passed,Failed,Pending,Pass Rate,Status
+Unit Testing,150,145,5,0,97%,Completed
+System Integration,120,110,8,2,91%,In Progress
+User Acceptance Test,200,180,15,5,90%,In Progress
+Performance Test,50,40,7,3,80%,Pending

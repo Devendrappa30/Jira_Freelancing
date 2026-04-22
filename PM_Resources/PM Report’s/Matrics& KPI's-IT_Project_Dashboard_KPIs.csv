@@ -1,0 +1,24 @@
+Productivity,,Quality,,Customer Satisfaction,
+Task Completion Rate,(Completed Tasks / Total Tasks) * 100,Defect Density,(Number of Defects / Total Story Points),CSAT (Customer Satisfaction Score),CSAT (Customer Satisfaction Score)
+Planned vs. Actual Effort,Average Story Points per Sprint,Defect Resolution Time,Average Time to Fix Issues,Net Promoter Score (NPS),Net Promoter Score (NPS)
+Resource Utilization Rate,Estimated Effort vs. Actual Effort,Test Case Pass Rate,(Passed Test Cases / Total Test Cases) * 100,On-Time Delivery Rate,On-Time Delivery Rate
+Lead Time ,(Hours Worked / Available Hours) * 100,Rework Percentage,(Rework Effort / Total Effort) * 100,S,Customer Complaints vs. Resolutions
+Cycle Time,Time Taken from Start to Completion,Code Review Effectiveness,(Defects Found in Review / Total Defects Found),Requirement Stability Index,Requirement Stability Index
+,,,,,
+,,,,,
+Risk,,Issue,,Change Requests,
+Open vs. Closed Risks,(Open Risks / Total Risks) * 100,Open vs. Closed Issues,(Open Issues / Total Issues) * 100,Change Request Count,Total Number of Change Requests
+High-Risk Items,Number of Critical Risks Identified,Average Issue Resolution Time,Average Time to Resolve Issues,Change Request Approval Rate,(Approved Requests / Total Requests) * 100
+Risk Resolution Time,Average Time to Mitigate Risks,Escalated Issues Count,Number of Issues Escalated,Change Impact Analysis,"Number of Changes Affecting Scope, Budget, Timeline"
+Risk Exposure Score,Probability x Impact of Each Risk,Recurring Issues,Count of Repeated Issues,Requirement Change Rate,(Changed Requirements / Total Requirements) * 100
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+Budget,,Team Capacity,,Stakeholder Engagement,
+Cost Variance (CV),(Planned Budget - Actual Budget) / Planned Budget,Capacity Utilization,(Assigned Work / Available Capacity) * 100,Stakeholder Engagement Score,Survey or Feedback Ratings
+Earned Value (EV),% of Work Completed x Total Budget,Resource Allocation %,(Allocated Resources / Total Resources) * 100,Number of Stakeholder Meetings,Number of Meetings Conducted
+Budget Utilization Rate,(Budget Spent / Total Budget) * 100,Employee Productivity,Tasks Completed per Team Member,Stakeholder Issue Resolution Time,Average Time to Address Concerns
+,,Overdue Tasks per Team Member,Count of Delayed Work,Requirement Adherence Rate,% of Stakeholder Expectations Met

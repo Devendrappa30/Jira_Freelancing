@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devendrappa - Service Offerings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+        /* Resources Dropdown Custom Styles */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 30;
+            margin-top: 0.5rem;
+            border-radius: 0.375rem;
+        }
+        .dropdown-content a {
+            color: #1e3a8a;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: block;
+            border-radius: 0.375rem;
+        }
+        .dropdown-content a:hover {
+            background-color: #dbeafe;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown:focus-within .dropdown-content {
+            display: block;
+        }
+        .dropdown-btn:after {
+            content: '';
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            padding: 3px;
+            margin-left: 6px;
+            transform: rotate(45deg);
+            -webkit-transform: rotate(45deg);
+            vertical-align: middle;
+        }
+        .top-nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+            margin-bottom: 16px;
+            margin-top: 18px;
+        }
+        .icon-btn {
+            background: #2563EB;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 1.3em;
+            box-shadow: 0 2px 6px rgba(30,58,138,0.08);
+        }
+        .icon-btn:hover {
+            background: #F59E0B;
+            color: #fff;
+        }
+        @media (max-width: 768px) {
+            .top-nav-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans smooth-scroll">
+    <nav class="bg-blue-900 text-white sticky top-0 z-10 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold">Devendrappa - Agile Practitioner</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-2">
+                    
+                </div>
+                <div class="md:hidden flex items-center">
+                    
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="top-nav-buttons">
+        <a href="../../index.html" class="icon-btn" title="Return Home" aria-label="Return Home">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M9 21h6a2 2 0 002-2v-7h-2v7H9v-7H7v7a2 2 0 002 2z"/>
+            </svg>
+        </a>
+        <button class="icon-btn" onclick="history.back()" title="Return (Back)" aria-label="Return">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+    </div>
+
+    <section id="service-offerings" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Service Offerings</h2>
+            <p class="text-lg text-gray-700 mb-8">Comprehensive project management services tailored to your needs using Waterfall, Agile, and XP methodologies.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-blue-100 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-blue-900 mb-4">Waterfall Project Management</h3>
+                    <ul class="text-gray-700 list-disc list-inside space-y-2">
+                        <li>Structured project planning with clear phases (Requirements, Design, Implementation, Testing, Deployment).</li>
+                        <li>Detailed Gantt charts and milestone tracking.</li>
+                        <li>Risk management and stakeholder communication.</li>
+                        <li>Ideal for projects with fixed requirements and regulatory compliance needs.</li>
+                    </ul>
+                </div>
+                <div class="bg-green-100 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-green-800 mb-4">Agile Project Management</h3>
+                    <ul class="text-gray-700 list-disc list-inside space-y-2">
+                        <li>Iterative delivery with sprints and continuous feedback.</li>
+                        <li>Facilitation of Scrum ceremonies (Daily Standups, Sprint Planning, Retrospectives).</li>
+                        <li>Tracking KPIs like Velocity, Cycle Time, and Burndown Charts.</li>
+                        <li>Suitable for dynamic software development projects.</li>
+                    </ul>
+                </div>
+                <div class="bg-purple-100 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-purple-800 mb-4">Extreme Programming (XP)</h3>
+                    <ul class="text-gray-700 list-disc list-inside space-y-2">
+                        <li>Emphasis on technical excellence with practices like Pair Programming, TDD, and Continuous Integration.</li>
+                        <li>Rapid delivery of small, functional increments.</li>
+                        <li>Code quality metrics and defect management.</li>
+                        <li>Best for high-change, developer-driven projects.</li>
+                    </ul>
+                </div>
+                <div class="bg-yellow-100 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-yellow-800 mb-4">Support Project Management</h3>
+                    <ul class="text-gray-700 list-disc list-inside space-y-2">
+                        <li>Management of IT support and maintenance projects.</li>
+                        <li>Incident tracking, SLA monitoring, and resolution time analysis.</li>
+                        <li>Coordination of support teams and escalation processes.</li>
+                        <li>Ensuring system uptime and client satisfaction.</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-200 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Additional Services</h3>
+                    <ul class="text-gray-700 list-disc list-inside space-y-2">
+                        <li>Custom dashboard setup (Jira, Azure DevOps, Asana).</li>
+                        <li>Process optimization and team training.</li>
+                        <li>Stakeholder reporting and documentation (Confluence).</li>
+                        <li>Risk and change management across methodologies.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-blue-900 text-white py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2025 Devendrappa. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // No specific script for this page, but keeping consistent structure
+    </script>
+</body>
+</html>

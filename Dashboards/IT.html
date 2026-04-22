@@ -1,0 +1,635 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Project Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      background-color: #f3f4f6;
+    }
+    .chart-container {
+      background-color: white;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    canvas {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body class="p-6">
+  <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">IT Support Project Dashboard</h1>
+  <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+    <!-- Ticket Overview -->
+    <div class="chart-container">
+      <canvas id="ticketOverview"></canvas>
+    </div>
+    <!-- Priority Breakdown -->
+    <div class="chart-container">
+      <canvas id="priorityBreakdown"></canvas>
+    </div>
+    <!-- SLA Compliance -->
+    <div class="chart-container">
+      <canvas id="slaCompliance"></canvas>
+    </div>
+    <!-- FCR Rate -->
+    <div class="chart-container">
+      <canvas id="fcrRate"></canvas>
+    </div>
+    <!-- Ticket Reopen Rate -->
+    <div class="chart-container">
+      <canvas id="ticketReopenRate"></canvas>
+    </div>
+    <!-- Support Level Breakdown -->
+    <div class="chart-container">
+      <canvas id="supportLevelBreakdown"></canvas>
+    </div>
+    <!-- Escalations -->
+    <div class="chart-container">
+      <canvas id="escalations"></canvas>
+    </div>
+    <!-- Top 5 Issue Types -->
+    <div class="chart-container">
+      <canvas id="topIssueTypes"></canvas>
+    </div>
+    <!-- Repetitive Work -->
+    <div class="chart-container">
+      <canvas id="repetitiveWork"></canvas>
+    </div>
+    <!-- WIP Limits -->
+    <div class="chart-container">
+      <canvas id="wipLimits"></canvas>
+    </div>
+    <!-- Lead Time -->
+    <div class="chart-container">
+      <canvas id="leadTime"></canvas>
+    </div>
+    <!-- Cycle Time -->
+    <div class="chart-container">
+      <canvas id="cycleTime"></canvas>
+    </div>
+    <!-- Resolution Time -->
+    <div class="chart-container">
+      <canvas id="resolutionTime"></canvas>
+    </div>
+    <!-- Throughput -->
+    <div class="chart-container">
+      <canvas id="throughput"></canvas>
+    </div>
+    <!-- Backlog Growth Rate -->
+    <div class="chart-container">
+      <canvas id="backlogGrowthRate"></canvas>
+    </div>
+    <!-- Agent Performance (Tickets Resolved) -->
+    <div class="chart-container">
+      <canvas id="agentPerformanceTickets"></canvas>
+    </div>
+    <!-- Agent Performance (Response Time) -->
+    <div class="chart-container">
+      <canvas id="agentPerformanceResponse"></canvas>
+    </div>
+    <!-- CSAT -->
+    <div class="chart-container">
+      <canvas id="csat"></canvas>
+    </div>
+    <!-- CES -->
+    <div class="chart-container">
+      <canvas id="ces"></canvas>
+    </div>
+    <!-- MTTD/MTTR -->
+    <div class="chart-container">
+      <canvas id="mttdMttr"></canvas>
+    </div>
+    <!-- Control Chart -->
+    <div class="chart-container col-span-1 md:col-span-2 lg:col-span-3">
+      <canvas id="controlChart"></canvas>
+    </div>
+    <!-- Monthly Trends -->
+    <div class="chart-container col-span-1 md:col-span-2 lg:col-span-2">
+      <canvas id="monthlyTrends"></canvas>
+    </div>
+    <!-- Cumulative Flow Diagram -->
+    <div class="chart-container col-span-1 md:col-span-3 lg:col-span-5">
+      <canvas id="cumulativeFlow"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Error handling wrapper
+    function createChart(canvasId, config) {
+      try {
+        const ctx = document.getElementById(canvasId)?.getContext('2d');
+        if (!ctx) throw new Error(`Canvas not found: ${canvasId}`);
+        new Chart(ctx, config);
+      } catch (error) {
+        console.error(`Error creating chart ${canvasId}:`, error);
+      }
+    }
+
+    // Chart configurations
+    createChart('ticketOverview', {
+      type: 'bar',
+      data: {
+        labels: ['Open', 'Closed', 'In Progress', 'Backlog'],
+        datasets: [{
+          label: 'Ticket Count',
+          data: [50, 100, 30, 20],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'Ticket Overview' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+      }
+    });
+
+    createChart('priorityBreakdown', {
+      type: 'pie',
+      data: {
+        labels: ['P1', 'P2', 'P3', 'P4'],
+        datasets: [{
+          data: [10, 30, 40, 20],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Priority Breakdown' } }
+      }
+    });
+
+    createChart('slaCompliance', {
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3', 'P4'],
+        datasets: [{
+          label: 'SLA Compliance (%)',
+          data: [95, 90, 85, 80],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'SLA Compliance' } },
+        scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } } }
+      }
+    });
+
+    createChart('fcrRate', {
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3', 'P4'],
+        datasets: [{
+          label: 'FCR Rate (%)',
+          data: [80, 75, 70, 65],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'First Contact Resolution Rate' } },
+        scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } } }
+      }
+    });
+
+    createChart('ticketReopenRate', {
+      type: 'pie',
+      data: {
+        labels: ['Password Reset', 'Trigger Issue', 'Access Issue', 'Software Bug'],
+        datasets: [{
+          data: [10, 8, 5, 12],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Ticket Reopen Rate' } }
+      }
+    });
+
+    createChart('supportLevelBreakdown', {
+      type: 'pie',
+      data: {
+        labels: ['L1', 'L2', 'L3'],
+        datasets: [{
+          data: [50, 30, 20],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Support Level Breakdown' } }
+      }
+    });
+
+    createChart('escalations', {
+      type: 'bar',
+      data: {
+        labels: ['High', 'Medium', 'Low'],
+        datasets: [{
+          label: 'Escalated Tickets',
+          data: [15, 25, 10],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'Escalations' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+      }
+    });
+
+    createChart('topIssueTypes', {
+      type: 'pie',
+      data: {
+        labels: ['Password Reset', 'Trigger Issue', 'Access Issue', 'Software Bug', 'Network Issue'],
+        datasets: [{
+          data: [30, 25, 20, 15, 10],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#D4A5A5'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Top 5 Issue Types' } }
+      }
+    });
+
+    createChart('repetitiveWork', {
+      type: 'pie',
+      data: {
+        labels: ['Password Reset', 'Trigger Issue', 'Access Issue', 'Software Bug'],
+        datasets: [{
+          data: [15, 10, 8, 5],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Repetitive Work' } }
+      }
+    });
+
+    createChart('wipLimits', {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [{
+          label: 'WIP Tickets',
+          data: [20, 25, 22, 30, 28],
+          borderColor: '#96CEB4',
+          backgroundColor: '#96CEB4',
+          fill: false,
+          tension: 0.4
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Work In Progress' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+      }
+    });
+
+    createChart('leadTime', {
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3', 'P4'],
+        datasets: [{
+          label: 'Lead Time',
+          data: [5.2, 7.8, 10.5, 12.3],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'Lead Time' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Days' } } }
+      }
+    });
+
+    createChart('cycleTime', {
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3', 'P4'],
+        datasets: [{
+          label: 'Cycle Time',
+          data: [2.5, 3.7, 5.1, 6.8],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'Cycle Time' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Days' } } }
+      }
+    });
+
+    createChart('resolutionTime', {
+      type: 'bar',
+      data: {
+        labels: ['Resolution', 'Response'],
+        datasets: [{
+          label: 'Time',
+          data: [4.5, 1.2],
+          backgroundColor: ['#FF6B6B', '#4ECDC4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'Resolution Times' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+      }
+    });
+
+    createChart('throughput', {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [{
+          label: 'Tickets Completed',
+          data: [45, 50, 48, 55, 52],
+          borderColor: '#4ECDC4',
+          backgroundColor: '#4ECDC4',
+          fill: false,
+          tension: 0.4
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Throughput' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+      }
+    });
+
+    createChart('backlogGrowthRate', {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [{
+          label: 'Growth Rate (%)',
+          data: [5, 8, -2, 10, 3],
+          borderColor: '#D4A5A5',
+          backgroundColor: '#D4A5A5',
+          fill: false,
+          tension: 0.4
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Backlog Growth Rate' } },
+        scales: { y: { title: { display: true, text: '%' } } }
+      }
+    });
+
+    createChart('agentPerformanceTickets', {
+      type: 'bar',
+      data: {
+        labels: ['Agent A', 'Agent B', 'Agent C', 'Agent D'],
+        datasets: [{
+          label: 'Tickets Resolved',
+          data: [40, 35, 25, 20],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'Agent Tickets Resolved' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+      }
+    });
+
+    createChart('agentPerformanceResponse', {
+      type: 'bar',
+      data: {
+        labels: ['Agent A', 'Agent B', 'Agent C', 'Agent D'],
+        datasets: [{
+          label: 'Response Time',
+          data: [1.0, 1.5, 1.2, 2.0],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false }, title: { display: true, text: 'Agent Response Time' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+      }
+    });
+
+    createChart('csat', {
+      type: 'pie',
+      data: {
+        labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+        datasets: [{
+          data: [5, 10, 20, 35, 30],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#D4A5A5'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'CSAT' } }
+      }
+    });
+
+    createChart('ces', {
+      type: 'pie',
+      data: {
+        labels: ['1', '2', '3', '4', '5', '6', '7'],
+        datasets: [{
+          data: [2, 5, 10, 15, 25, 30, 13],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#D4A5A5', '#FFB7C5', '#A0CED9'],
+          borderColor: ['#FFFFFF'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Customer Effort Score' } }
+      }
+    });
+
+    createChart('mttdMttr', {
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3', 'P4'],
+        datasets: [
+          {
+            label: 'MTTD (Hours)',
+            data: [0.5, 1.0, 1.5, 2.0],
+            backgroundColor: '#FF6B6B',
+            borderColor: '#FFFFFF',
+            borderWidth: 1
+          },
+          {
+            label: 'MTTR (Hours)',
+            data: [4.0, 6.0, 8.0, 10.0],
+            backgroundColor: '#4ECDC4',
+            borderColor: '#FFFFFF',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'MTTD/MTTR' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+      }
+    });
+
+    createChart('controlChart', {
+      type: 'line',
+      data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+        datasets: [
+          {
+            label: 'Resolution Time (Hours)',
+            data: [4.2, 4.8, 4.5, 5.0, 4.3],
+            borderColor: '#45B7D1',
+            backgroundColor: '#45B7D1',
+            fill: false,
+            tension: 0.4
+          },
+          {
+            label: 'Upper Control Limit',
+            data: [5.5, 5.5, 5.5, 5.5, 5.5],
+            borderColor: '#FF6B6B',
+            borderDash: [5, 5],
+            fill: false
+          },
+          {
+            label: 'Lower Control Limit',
+            data: [3.5, 3.5, 3.5, 3.5, 3.5],
+            borderColor: '#FF6B6B',
+            borderDash: [5, 5],
+            fill: false
+          }
+        ]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Control Chart' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+      }
+    });
+
+    createChart('monthlyTrends', {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [
+          {
+            label: 'Tickets Created',
+            data: [50, 60, 55, 70, 65],
+            borderColor: '#FF6B6B',
+            backgroundColor: '#FF6B6B',
+            fill: false,
+            tension: 0.4
+          },
+          {
+            label: 'Tickets Resolved',
+            data: [45, 55, 50, 65, 60],
+            borderColor: '#4ECDC4',
+            backgroundColor: '#4ECDC4',
+            fill: false,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Monthly Trends' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+      }
+    });
+
+    createChart('cumulativeFlow', {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [
+          {
+            label: 'Open',
+            data: [50, 60, 55, 70, 65],
+            borderColor: '#FF6B6B',
+            backgroundColor: 'rgba(255, 107, 107, 0.2)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'In Progress',
+            data: [30, 35, 32, 40, 38],
+            borderColor: '#45B7D1',
+            backgroundColor: 'rgba(69, 183, 209, 0.2)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Closed',
+            data: [100, 155, 205, 270, 330],
+            borderColor: '#4ECDC4',
+            backgroundColor: 'rgba(78, 205, 196, 0.2)',
+            fill: true,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Cumulative Flow Diagram' } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+Task ID,Task Name,Assigned To,Priority,Status,Hours Spent,Completion (%),Due Date
+101,Sprint Planning,Alice,High,Completed,5,100%,2025-03-10
+105,Release Deployment,Eve,High,Completed,6,100%,2025-03-09
+106,Code Review,Frank,Low,Completed,2,100%,2025-03-11
+108,Client Meeting,Henry,High,Completed,3,100%,2025-03-07
+102,User Story Refinement,Bob,Medium,In Progress,3,60%,2025-03-12
+104,Test Case Execution,David,Medium,In Progress,4,50%,2025-03-14
+109,UI Enhancement,Alice,Low,In Progress,2,40%,2025-03-17
+110,Performance Testing,Bob,Medium,In Progress,5,,
+103,Bug Fixing,Charlie,High,Not Started,0,0%,2025-03-15
+107,Documentation Update,Grace,Medium,Not Started,0,0%,2025-03-18

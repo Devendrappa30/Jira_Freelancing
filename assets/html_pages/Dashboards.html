@@ -1,0 +1,2850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Dashboards</title>
+    <!-- Common CSS includes -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .dashboard-buttons {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .dashboard-buttons button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .dashboard-buttons button:hover {
+            background-color: #0056b3;
+        }
+        .dashboard-content {
+            display: none; /* Hidden by default */
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .dashboard-content.active {
+            display: block; /* Show active dashboard */
+        }
+        /* Specific styles for dashboards can be added here if they conflict */
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; /* Spacing between chart containers */
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto; /* Ensure responsiveness */
+        }
+        .health-indicator {
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .health-green { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .health-yellow { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .health-red { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+<div class="top-nav-buttons" style="display: flex; gap: 10px; justify-content: flex-start; margin-bottom: 16px; margin-top: 6px;">
+  <!-- Return Home Button (icon only) -->
+  <a href="../../index.html" class="icon-btn" title="Return Home" aria-label="Return Home" style="background: #2563EB; color: #fff; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; font-size: 1.3em; box-shadow: 0 2px 6px rgba(30,58,138,0.08);">
+    <!-- Home SVG -->
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M9 21h6a2 2 0 002-2v-7h-2v7H9v-7H7v7a2 2 0 002 2z"/>
+    </svg>
+  </a>
+  <!-- Return Button (icon only) -->
+  <button class="icon-btn" onclick="history.back()" title="Return (Back)" aria-label="Return"
+    style="background: #2563EB; color: #fff; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; font-size: 1.3em; box-shadow: 0 2px 6px rgba(30,58,138,0.08);">
+    <!-- Arrow Left SVG -->
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+    </svg>
+  </button>
+</div>
+    <h1 style="text-align: center; color: #333;">Project Dashboards</h1>
+
+    <div class="dashboard-buttons">
+        <button onclick="showDashboard('waterfallDashboard')">Waterfall Project Dashboard</button>
+        <button onclick="showDashboard('agileDashboard')">Agile Dashboard</button>
+        <button onclick="showDashboard('itSupportDashboard')">IT Support Dashboard</button>
+        <button onclick="showDashboard('xpDashboard')">Extreme Programming (XP) Dashboard</button>
+    </div>
+
+    <!-- Waterfall Dashboard Section -->
+    <div id="waterfallDashboard" class="dashboard-content">
+        <h1>Comprehensive Waterfall Project Dashboard</h1>
+        <div class="controls mb-4">
+            <label for="waterfallPhaseSelect" class="block text-gray-700 text-sm font-bold mb-2">Select Phase: </label>
+            <select id="waterfallPhaseSelect" onchange="updateWaterfallCharts()" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="1">Requirements</option>
+                <option value="2">Design</option>
+                <option value="3">Implementation</option>
+                <option value="4">Testing</option>
+                <option value="5">Deployment</option>
+            </select>
+            <button onclick="downloadWaterfallCharts()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4">Download Charts as PNG</button>
+        </div>
+        <div class="dashboard">
+            <div class="chart-container">
+                <h2>Phase Progress</h2>
+                <canvas id="waterfallPhaseProgressChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Milestone Status</h2>
+                <canvas id="waterfallMilestoneStatusChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Budget Report</h2>
+                <canvas id="waterfallBudgetReportChart"></canvas>
+                <table id="waterfallBudgetReportTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Metric</th><th class="py-2 px-4 border-b">Value</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Task Status</h2>
+                <canvas id="waterfallTaskStatusChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Risk Distribution</h2>
+                <canvas id="waterfallRiskDistributionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Resource Allocation</h2>
+                <canvas id="waterfallResourceAllocationChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Phase Timeline</h2>
+                <canvas id="waterfallPhaseTimelineChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Cost Variance</h2>
+                <canvas id="waterfallCostVarianceChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Schedule Variance</h2>
+                <canvas id="waterfallScheduleVarianceChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Time Tracking Report</h2>
+                <canvas id="waterfallTimeTrackingChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Team Workload</h2>
+                <canvas id="waterfallTeamWorkloadChart"></canvas>
+                <table id="waterfallTeamWorkloadTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Member</th><th class="py-2 px-4 border-b">Hours Logged</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Issue Resolution</h2>
+                <canvas id="waterfallIssueResolutionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Gantt Chart (Table View)</h2>
+                <table id="waterfallGanttTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Task</th><th class="py-2 px-4 border-b">Progress (%)</th><th class="py-2 px-4 border-b">Dependency</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Defect Density</h2>
+                <canvas id="waterfallDefectDensityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Test Coverage</h2>
+                <canvas id="waterfallTestCoverageChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Rework Effort</h2>
+                <canvas id="waterfallReworkEffortChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Root Cause Analysis</h2>
+                <table id="waterfallRcaTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Issue</th><th class="py-2 px-4 border-b">Root Cause</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Schedule Performance Index (SPI)</h2>
+                <canvas id="waterfallSpiChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Cost Performance Index (CPI)</h2>
+                <canvas id="waterfallCpiChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Earned Value Management</h2>
+                <canvas id="waterfallEvmChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Project Status Summary</h2>
+                <table id="waterfallProjectStatusTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Metric</th><th class="py-2 px-4 border-b">Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Task Completion Rate</h2>
+                <canvas id="waterfallTaskCompletionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Team Velocity</h2>
+                <canvas id="waterfallTeamVelocityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Collaboration Score</h2>
+                <canvas id="waterfallCollaborationScoreChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Training Hours</h2>
+                <canvas id="waterfallTrainingHoursChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Peer Feedback</h2>
+                <table id="waterfallPeerFeedbackTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Member</th><th class="py-2 px-4 border-b">Feedback</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Customer Satisfaction (CSAT)</h2>
+                <canvas id="waterfallCsatChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Net Promoter Score (NPS)</h2>
+                <canvas id="waterfallNpsChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Customer Effort Score (CES)</h2>
+                <canvas id="waterfallCesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Ticket Resolution Rate</h2>
+                <canvas id="waterfallTicketResolutionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Customer Feedback</h2>
+                <table id="waterfallCustomerFeedbackTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Feedback</th><th class="py-2 px-4 border-b">Source</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Project Health</h2>
+                <div id="waterfallHealthIndicator" class="health-indicator"></div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            const waterfallChartInstances = {}; // New object for waterfall charts
+            const phaseData = {
+                1: {
+                    progress: { tasks: ['Task 1', 'Task 2', 'Task 3', 'Task 4'], completed: [100, 80, 60, 20] },
+                    milestones: { completed: 3, inProgress: 1, notStarted: 1 },
+                    budget: { planned: 100000, spent: 80000, remaining: 20000 },
+                    tasks: { todo: 5, inProgress: 3, done: 12 },
+                    risks: { low: 8, medium: 4, high: 2 },
+                    resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [40, 35, 45, 30] },
+                    timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 50, 0, 0, 0] },
+                    costVariance: { planned: 100000, actual: 80000 },
+                    scheduleVariance: { plannedDays: 30, actualDays: 25 },
+                    timeTracking: { estimated: 200, logged: 180 },
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [40, 35, 45, 30] },
+                    issues: { reported: 10, resolved: 8 },
+                    gantt: [
+                        { task: 'Task 1', start: 0, duration: 5, progress: 100, dependencies: [], milestone: false },
+                        { task: 'Task 2', start: 5, duration: 4, progress: 80, dependencies: ['Task 1'], milestone: false },
+                        { task: 'Task 3', start: 9, duration: 3, progress: 60, dependencies: ['Task 2'], milestone: false },
+                        { task: 'Milestone 1', start: 12, duration: 0, progress: 100, dependencies: ['Task 3'], milestone: true }
+                    ],
+                    quality: {
+                        defectDensity: 0.5,
+                        testCoverage: 90,
+                        reworkHours: 20,
+                        compliance: 95,
+                        rca: [{ issue: 'Bug A', cause: 'Coding error' }, { issue: 'Bug B', cause: 'Requirements gap' }]
+                    },
+                    performance: {
+                        spi: 1.2,
+                        cpi: 1.1,
+                        evm: { ev: 80000, pv: 75000, ac: 70000 },
+                        plannedVsActual: { time: { planned: 30, actual: 25 }, cost: { planned: 100000, actual: 80000 }, scope: { planned: 100, actual: 95 } },
+                        riskSummary: { open: 5, mitigated: 3 },
+                        status: { scope: 'On Track', schedule: 'Ahead', budget: 'Under' }
+                    },
+                    team: {
+                        completionRate: 85,
+                        velocity: 30,
+                        collaboration: 80,
+                        trainingHours: [10, 8, 12, 6],
+                        feedback: [{ member: 'Alice', comment: 'Great work' }, { member: 'Bob', comment: 'Needs improvement' }],
+                        attendance: 95
+                    },
+                    customer: {
+                        csat: 85,
+                        nps: 60,
+                        ces: 4,
+                        ticketResolution: 90,
+                        feedback: [{ comment: 'Great product!', source: 'Client A' }, { comment: 'Needs faster support', source: 'Client B' }],
+                        complaintResponse: 24
+                    },
+                    health: 'Green'
+                },
+                2: {
+                    progress: { tasks: ['Task 5', 'Task 6', 'Task 7', 'Task 8'], completed: [90, 70, 50, 10] },
+                    milestones: { completed: 2, inProgress: 2, notStarted: 1 },
+                    budget: { planned: 150000, spent: 130000, remaining: 20000 },
+                    tasks: { todo: 4, inProgress: 5, done: 15 },
+                    risks: { low: 6, medium: 5, high: 3 },
+                    resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [45, 40, 50, 35] },
+                    timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 80, 20, 0, 0] },
+                    costVariance: { planned: 150000, actual: 130000 },
+                    scheduleVariance: { plannedDays: 40, actualDays: 45 },
+                    timeTracking: { estimated: 250, logged: 220 },
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [45, 40, 50, 35] },
+                    issues: { reported: 12, resolved: 9 },
+                    gantt: [
+                        { task: 'Task 5', start: 0, duration: 6, progress: 90, dependencies: [], milestone: false },
+                        { task: 'Task 6', start: 6, duration: 5, progress: 70, dependencies: ['Task 5'], milestone: false },
+                        { task: 'Task 7', start: 11, duration: 4, progress: 50, dependencies: ['Task 6'], milestone: false },
+                        { task: 'Milestone 2', start: 15, duration: 0, progress: 100, dependencies: ['Task 7'], milestone: true }
+                    ],
+                    quality: {
+                        defectDensity: 0.7,
+                        testCoverage: 85,
+                        reworkHours: 30,
+                        compliance: 90,
+                        rca: [{ issue: 'Bug C', cause: 'Design flaw' }, { issue: 'Bug D', cause: 'Integration issue' }]
+                    },
+                    performance: {
+                        spi: 0.9,
+                        cpi: 1.0,
+                        evm: { ev: 130000, pv: 140000, ac: 130000 },
+                        plannedVsActual: { time: { planned: 40, actual: 45 }, cost: { planned: 150000, actual: 130000 }, scope: { planned: 100, actual: 90 } },
+                        riskSummary: { open: 7, mitigated: 2 },
+                        status: { scope: 'At Risk', schedule: 'Behind', budget: 'On Track' }
+                    },
+                    team: {
+                        completionRate: 80,
+                        velocity: 25,
+                        collaboration: 75,
+                        trainingHours: [12, 10, 15, 8],
+                        feedback: [{ member: 'Charlie', comment: 'Good progress' }, { member: 'Dana', comment: 'Needs more focus' }],
+                        attendance: 90
+                    },
+                    customer: {
+                        csat: 80,
+                        nps: 50,
+                        ces: 3,
+                        ticketResolution: 85,
+                        feedback: [{ comment: 'Satisfied', source: 'Client C' }, { comment: 'Slow response', source: 'Client D' }],
+                        complaintResponse: 36
+                    },
+                    health: 'Yellow'
+                },
+                3: {
+                    progress: { tasks: ['Task 9', 'Task 10', 'Task 11', 'Task 12'], completed: [80, 60, 40, 0] },
+                    milestones: { completed: 1, inProgress: 3, notStarted: 1 },
+                    budget: { planned: 200000, spent: 180000, remaining: 20000 },
+                    tasks: { todo: 6, inProgress: 7, done: 10 },
+                    risks: { low: 5, medium: 6, high: 4 },
+                    resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [50, 45, 55, 40] },
+                    timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 90, 50, 0, 0] },
+                    costVariance: { planned: 200000, actual: 180000 },
+                    scheduleVariance: { plannedDays: 50, actualDays: 55 },
+                    timeTracking: { estimated: 300, logged: 270 },
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [50, 45, 55, 40] },
+                    issues: { reported: 15, resolved: 10 },
+                    gantt: [
+                        { task: 'Task 9', start: 0, duration: 7, progress: 80, dependencies: [], milestone: false },
+                        { task: 'Task 10', start: 7, duration: 6, progress: 60, dependencies: ['Task 9'], milestone: false },
+                        { task: 'Task 11', start: 13, duration: 5, progress: 40, dependencies: ['Task 10'], milestone: false },
+                        { task: 'Milestone 3', start: 18, duration: 0, progress: 100, dependencies: ['Task 11'], milestone: true }
+                    ],
+                    quality: {
+                        defectDensity: 0.8,
+                        testCoverage: 80,
+                        reworkHours: 40,
+                        compliance: 88,
+                        rca: [{ issue: 'Bug E', cause: 'Requirement change' }, { issue: 'Bug F', cause: 'External dependency' }]
+                    },
+                    performance: {
+                        spi: 0.8,
+                        cpi: 0.9,
+                        evm: { ev: 180000, pv: 200000, ac: 180000 },
+                        plannedVsActual: { time: { planned: 50, actual: 55 }, cost: { planned: 200000, actual: 180000 }, scope: { planned: 100, actual: 85 } },
+                        riskSummary: { open: 8, mitigated: 1 },
+                        status: { scope: 'Off Track', schedule: 'Behind', budget: 'Over' }
+                    },
+                    team: {
+                        completionRate: 75,
+                        velocity: 20,
+                        collaboration: 70,
+                        trainingHours: [15, 12, 18, 10],
+                        feedback: [{ member: 'Alice', comment: 'Needs improvement in coding' }, { member: 'Bob', comment: 'Excellent problem solver' }],
+                        attendance: 88
+                    },
+                    customer: {
+                        csat: 75,
+                        nps: 40,
+                        ces: 3,
+                        ticketResolution: 80,
+                        feedback: [{ comment: 'Not satisfied', source: 'Client E' }, { comment: 'Buggy product', source: 'Client F' }],
+                        complaintResponse: 48
+                    },
+                    health: 'Red'
+                },
+                4: {
+                    progress: { tasks: ['Task 13', 'Task 14', 'Task 15', 'Task 16'], completed: [70, 50, 30, 0] },
+                    milestones: { completed: 0, inProgress: 4, notStarted: 1 },
+                    budget: { planned: 250000, spent: 230000, remaining: 20000 },
+                    tasks: { todo: 8, inProgress: 9, done: 8 },
+                    risks: { low: 4, medium: 7, high: 5 },
+                    resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [55, 50, 60, 45] },
+                    timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 95, 70, 20, 0] },
+                    costVariance: { planned: 250000, actual: 230000 },
+                    scheduleVariance: { plannedDays: 60, actualDays: 65 },
+                    timeTracking: { estimated: 350, logged: 320 },
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [55, 50, 60, 45] },
+                    issues: { reported: 18, resolved: 12 },
+                    gantt: [
+                        { task: 'Task 13', start: 0, duration: 8, progress: 70, dependencies: [], milestone: false },
+                        { task: 'Task 14', start: 8, duration: 7, progress: 50, dependencies: ['Task 13'], milestone: false },
+                        { task: 'Task 15', start: 15, duration: 6, progress: 30, dependencies: ['Task 14'], milestone: false },
+                        { task: 'Milestone 4', start: 21, duration: 0, progress: 100, dependencies: ['Task 15'], milestone: true }
+                    ],
+                    quality: {
+                        defectDensity: 0.9,
+                        testCoverage: 75,
+                        reworkHours: 50,
+                        compliance: 85,
+                        rca: [{ issue: 'Bug G', cause: 'Lack of testing' }, { issue: 'Bug H', cause: 'Poor communication' }]
+                    },
+                    performance: {
+                        spi: 0.7,
+                        cpi: 0.8,
+                        evm: { ev: 230000, pv: 250000, ac: 230000 },
+                        plannedVsActual: { time: { planned: 60, actual: 65 }, cost: { planned: 250000, actual: 230000 }, scope: { planned: 100, actual: 80 } },
+                        riskSummary: { open: 10, mitigated: 0 },
+                        status: { scope: 'Off Track', schedule: 'Behind', budget: 'Over' }
+                    },
+                    team: {
+                        completionRate: 70,
+                        velocity: 15,
+                        collaboration: 65,
+                        trainingHours: [18, 15, 20, 12],
+                        feedback: [{ member: 'Charlie', comment: 'Needs more support' }, { member: 'Dana', comment: 'Struggling with deadlines' }],
+                        attendance: 85
+                    },
+                    customer: {
+                        csat: 70,
+                        nps: 30,
+                        ces: 2,
+                        ticketResolution: 75,
+                        feedback: [{ comment: 'Very unhappy', source: 'Client G' }, { comment: 'Product is unusable', source: 'Client H' }],
+                        complaintResponse: 60
+                    },
+                    health: 'Red'
+                },
+                5: {
+                    progress: { tasks: ['Task 17', 'Task 18', 'Task 19', 'Task 20'], completed: [60, 40, 20, 0] },
+                    milestones: { completed: 0, inProgress: 5, notStarted: 0 },
+                    budget: { planned: 300000, spent: 280000, remaining: 20000 },
+                    tasks: { todo: 10, inProgress: 12, done: 5 },
+                    risks: { low: 3, medium: 8, high: 6 },
+                    resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [60, 55, 65, 50] },
+                    timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 98, 80, 40, 10] },
+                    costVariance: { planned: 300000, actual: 280000 },
+                    scheduleVariance: { plannedDays: 70, actualDays: 75 },
+                    timeTracking: { estimated: 400, logged: 370 },
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [60, 55, 65, 50] },
+                    issues: { reported: 20, resolved: 15 },
+                    gantt: [
+                        { task: 'Task 17', start: 0, duration: 9, progress: 60, dependencies: [], milestone: false },
+                        { task: 'Task 18', start: 9, duration: 8, progress: 40, dependencies: ['Task 17'], milestone: false },
+                        { task: 'Task 19', start: 17, duration: 7, progress: 20, dependencies: ['Task 18'], milestone: false },
+                        { task: 'Milestone 5', start: 24, duration: 0, progress: 100, dependencies: ['Task 19'], milestone: true }
+                    ],
+                    quality: {
+                        defectDensity: 1.0,
+                        testCoverage: 70,
+                        reworkHours: 60,
+                        compliance: 80,
+                        rca: [{ issue: 'Bug I', cause: 'Scope creep' }, { issue: 'Bug J', cause: 'Resource constraints' }]
+                    },
+                    performance: {
+                        spi: 0.6,
+                        cpi: 0.7,
+                        evm: { ev: 280000, pv: 300000, ac: 280000 },
+                        plannedVsActual: { time: { planned: 70, actual: 75 }, cost: { planned: 300000, actual: 280000 }, scope: { planned: 100, actual: 75 } },
+                        riskSummary: { open: 12, mitigated: 0 },
+                        status: { scope: 'Critical', schedule: 'Behind', budget: 'Over' }
+                    },
+                    team: {
+                        completionRate: 65,
+                        velocity: 10,
+                        collaboration: 60,
+                        trainingHours: [20, 18, 22, 15],
+                        feedback: [{ member: 'Alice', comment: 'Needs a break' }, { member: 'Bob', comment: 'Overwhelmed' }],
+                        attendance: 80
+                    },
+                    customer: {
+                        csat: 65,
+                        nps: 20,
+                        ces: 1,
+                        ticketResolution: 70,
+                        feedback: [{ comment: 'Terrible experience', source: 'Client I' }, { comment: 'I will switch providers', source: 'Client J' }],
+                        complaintResponse: 72
+                    },
+                    health: 'Red'
+                }
+            };
+
+            function createWaterfallChart(canvasId, config) {
+                const ctx = document.getElementById(canvasId)?.getContext('2d');
+                if (ctx) {
+                    if (waterfallChartInstances[canvasId]) {
+                        waterfallChartInstances[canvasId].destroy();
+                    }
+                    waterfallChartInstances[canvasId] = new Chart(ctx, config);
+                } else {
+                    console.error(`Canvas element with ID '${canvasId}' not found for waterfall.`);
+                }
+            }
+
+            function updateWaterfallCharts(phaseId = document.getElementById('waterfallPhaseSelect').value) {
+                const data = phaseData[phaseId];
+                if (!data) return;
+
+                // Phase Progress Chart
+                createWaterfallChart('waterfallPhaseProgressChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.progress.tasks,
+                        datasets: [{
+                            label: 'Completion (%)',
+                            data: data.progress.completed,
+                            backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Phase Progress' } } }
+                });
+
+                // Milestone Status Chart
+                createWaterfallChart('waterfallMilestoneStatusChart', {
+                    type: 'pie',
+                    data: {
+                        labels: ['Completed', 'In Progress', 'Not Started'],
+                        datasets: [{
+                            data: [data.milestones.completed, data.milestones.inProgress, data.milestones.notStarted],
+                            backgroundColor: ['#4CAF50', '#2196F3', '#FFC107']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Milestone Status' } } }
+                });
+
+                // Budget Report Chart and Table
+                createWaterfallChart('waterfallBudgetReportChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Planned Budget', 'Spent Budget', 'Remaining Budget'],
+                        datasets: [{
+                            label: 'Amount ($)',
+                            data: [data.budget.planned, data.budget.spent, data.budget.remaining],
+                            backgroundColor: ['#4CAF50', '#F44336', '#2196F3']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Budget Report' } } }
+                });
+                const budgetReportTable = document.getElementById('waterfallBudgetReportTable').getElementsByTagName('tbody')[0];
+                budgetReportTable.innerHTML = `
+                    <tr><td class="py-2 px-4 border-b">Planned Budget</td><td class="py-2 px-4 border-b">$${data.budget.planned}</td></tr>
+                    <tr><td class="py-2 px-4 border-b">Spent Budget</td><td class="py-2 px-4 border-b">$${data.budget.spent}</td></tr>
+                    <tr><td class="py-2 px-4 border-b">Remaining Budget</td><td class="py-2 px-4 border-b">$${data.budget.remaining}</td></tr>
+                `;
+
+                // Task Status Chart
+                createWaterfallChart('waterfallTaskStatusChart', {
+                    type: 'pie',
+                    data: {
+                        labels: ['To Do', 'In Progress', 'Done'],
+                        datasets: [{
+                            data: [data.tasks.todo, data.tasks.inProgress, data.tasks.done],
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Task Status' } } }
+                });
+
+                // Risk Distribution Chart
+                createWaterfallChart('waterfallRiskDistributionChart', {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Low', 'Medium', 'High'],
+                        datasets: [{
+                            data: [data.risks.low, data.risks.medium, data.risks.high],
+                            backgroundColor: ['#4CAF50', '#FFC107', '#DC3545']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Risk Distribution' } } }
+                });
+
+                // Resource Allocation Chart (example)
+                createWaterfallChart('waterfallResourceAllocationChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.resources.members,
+                        datasets: [{
+                            label: 'Allocated Hours',
+                            data: data.resources.hours,
+                            backgroundColor: '#9C27B0'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Resource Allocation' } } }
+                });
+
+                // Phase Timeline Chart
+                createWaterfallChart('waterfallPhaseTimelineChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.timeline.phases,
+                        datasets: [{
+                            label: 'Progress (%)',
+                            data: data.timeline.progress,
+                            backgroundColor: '#00BCD4'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Phase Timeline' } } }
+                });
+
+                // Cost Variance Chart
+                createWaterfallChart('waterfallCostVarianceChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Planned', 'Actual'],
+                        datasets: [{
+                            label: 'Cost ($)',
+                            data: [data.costVariance.planned, data.costVariance.actual],
+                            backgroundColor: ['#2196F3', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Cost Variance' } } }
+                });
+
+                // Schedule Variance Chart
+                createWaterfallChart('waterfallScheduleVarianceChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Planned Days', 'Actual Days'],
+                        datasets: [{
+                            label: 'Days',
+                            data: [data.scheduleVariance.plannedDays, data.scheduleVariance.actualDays],
+                            backgroundColor: ['#4CAF50', '#FFC107']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Schedule Variance' } } }
+                });
+
+                // Time Tracking Report
+                createWaterfallChart('waterfallTimeTrackingChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Estimated Hours', 'Logged Hours'],
+                        datasets: [{
+                            label: 'Hours',
+                            data: [data.timeTracking.estimated, data.timeTracking.logged],
+                            backgroundColor: ['#FF5722', '#CDDC39']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Time Tracking Report' } } }
+                });
+
+                // Team Workload Table
+                const teamWorkloadTable = document.getElementById('waterfallTeamWorkloadTable').getElementsByTagName('tbody')[0];
+                teamWorkloadTable.innerHTML = '';
+                data.workload.members.forEach((member, index) => {
+                    const row = teamWorkloadTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = member;
+                    row.cells[1].textContent = data.workload.hours[index];
+                });
+
+                // Issue Resolution Chart
+                createWaterfallChart('waterfallIssueResolutionChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Reported Issues', 'Resolved Issues'],
+                        datasets: [{
+                            label: 'Count',
+                            data: [data.issues.reported, data.issues.resolved],
+                            backgroundColor: ['#F44336', '#4CAF50']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Issue Resolution' } } }
+                });
+
+                // Gantt Chart Table (only table for simplicity with Chart.js as it doesn't directly support gantt charts)
+                const ganttTable = document.getElementById('waterfallGanttTable').getElementsByTagName('tbody')[0];
+                ganttTable.innerHTML = '';
+                data.gantt.forEach(task => {
+                    const row = ganttTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = task.task;
+                    row.cells[1].textContent = task.progress;
+                    row.cells[2].textContent = task.dependencies.join(', ') || 'N/A';
+                });
+
+                // Defect Density Chart
+                createWaterfallChart('waterfallDefectDensityChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Defect Density'],
+                        datasets: [{
+                            label: 'Defects per KLOC',
+                            data: [data.quality.defectDensity],
+                            backgroundColor: '#FF6384'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Defect Density' } } }
+                });
+
+                // Test Coverage Chart
+                createWaterfallChart('waterfallTestCoverageChart', {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Covered', 'Not Covered'],
+                        datasets: [{
+                            data: [data.quality.testCoverage, 100 - data.quality.testCoverage],
+                            backgroundColor: ['#4CAF50', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Test Coverage (%)' } } }
+                });
+
+                // Rework Effort Chart
+                createWaterfallChart('waterfallReworkEffortChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Rework Hours'],
+                        datasets: [{
+                            label: 'Hours',
+                            data: [data.quality.reworkHours],
+                            backgroundColor: '#FFC107'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Rework Effort (Hours)' } } }
+                });
+
+                // Root Cause Analysis Table
+                const rcaTable = document.getElementById('waterfallRcaTable').getElementsByTagName('tbody')[0];
+                rcaTable.innerHTML = '';
+                data.quality.rca.forEach(item => {
+                    const row = rcaTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = item.issue;
+                    row.cells[1].textContent = item.cause;
+                });
+
+                // Schedule Performance Index (SPI) Chart
+                createWaterfallChart('waterfallSpiChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['SPI'],
+                        datasets: [{
+                            label: 'Score',
+                            data: [data.performance.spi],
+                            backgroundColor: '#2196F3'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Schedule Performance Index (SPI)' } } }
+                });
+
+                // Cost Performance Index (CPI) Chart
+                createWaterfallChart('waterfallCpiChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['CPI'],
+                        datasets: [{
+                            label: 'Score',
+                            data: [data.performance.cpi],
+                            backgroundColor: '#4CAF50'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Cost Performance Index (CPI)' } } }
+                });
+
+                // Earned Value Management Chart (simplified)
+                createWaterfallChart('waterfallEvmChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Earned Value (EV)', 'Planned Value (PV)', 'Actual Cost (AC)'],
+                        datasets: [{
+                            label: 'Value ($)',
+                            data: [data.performance.evm.ev, data.performance.evm.pv, data.performance.evm.ac],
+                            backgroundColor: ['#4CAF50', '#2196F3', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Earned Value Management' } } }
+                });
+
+                // Project Status Summary Table
+                const projectStatusTable = document.getElementById('waterfallProjectStatusTable').getElementsByTagName('tbody')[0];
+                projectStatusTable.innerHTML = '';
+                for (const metric in data.performance.status) {
+                    const row = projectStatusTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = metric.charAt(0).toUpperCase() + metric.slice(1);
+                    row.cells[1].textContent = data.performance.status[metric];
+                }
+
+                // Task Completion Rate Chart
+                createWaterfallChart('waterfallTaskCompletionChart', {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'Remaining'],
+                        datasets: [{
+                            data: [data.team.completionRate, 100 - data.team.completionRate],
+                            backgroundColor: ['#4CAF50', '#FFC107']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Task Completion Rate (%)' } } }
+                });
+
+                // Team Velocity Chart
+                createWaterfallChart('waterfallTeamVelocityChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Velocity'],
+                        datasets: [{
+                            label: 'Story Points / Week',
+                            data: [data.team.velocity],
+                            backgroundColor: '#FF5722'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Team Velocity' } } }
+                });
+
+                // Collaboration Score Chart
+                createWaterfallChart('waterfallCollaborationScoreChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Collaboration Score'],
+                        datasets: [{
+                            label: 'Score (0-100)',
+                            data: [data.team.collaboration],
+                            backgroundColor: '#795548'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Collaboration Score' } } }
+                });
+
+                // Training Hours Chart
+                createWaterfallChart('waterfallTrainingHoursChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.team.members, // Assuming members from resource allocation are same for training
+                        datasets: [{
+                            label: 'Training Hours',
+                            data: data.team.trainingHours,
+                            backgroundColor: '#8BC34A'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Training Hours' } } }
+                });
+
+                // Peer Feedback Table
+                const peerFeedbackTable = document.getElementById('waterfallPeerFeedbackTable').getElementsByTagName('tbody')[0];
+                peerFeedbackTable.innerHTML = '';
+                data.team.feedback.forEach(item => {
+                    const row = peerFeedbackTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = item.member;
+                    row.cells[1].textContent = item.comment;
+                });
+
+                // Customer Satisfaction (CSAT) Chart
+                createWaterfallChart('waterfallCsatChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['CSAT Score'],
+                        datasets: [{
+                            label: 'Score (0-100)',
+                            data: [data.customer.csat],
+                            backgroundColor: '#673AB7'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Customer Satisfaction (CSAT)' } } }
+                });
+
+                // Net Promoter Score (NPS) Chart
+                createWaterfallChart('waterfallNpsChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['NPS'],
+                        datasets: [{
+                            label: 'Score (-100 to 100)',
+                            data: [data.customer.nps],
+                            backgroundColor: '#FFEB3B'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Net Promoter Score (NPS)' } } }
+                });
+
+                // Customer Effort Score (CES) Chart
+                createWaterfallChart('waterfallCesChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['CES Score'],
+                        datasets: [{
+                            label: 'Score (1-5)',
+                            data: [data.customer.ces],
+                            backgroundColor: '#CDDC39'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Customer Effort Score (CES)' } } }
+                });
+
+                // Ticket Resolution Rate Chart
+                createWaterfallChart('waterfallTicketResolutionChart', {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Resolved', 'Unresolved'],
+                        datasets: [{
+                            data: [data.customer.ticketResolution, 100 - data.customer.ticketResolution],
+                            backgroundColor: ['#4CAF50', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Ticket Resolution Rate (%)' } } }
+                });
+
+                // Customer Feedback Table
+                const customerFeedbackTable = document.getElementById('waterfallCustomerFeedbackTable').getElementsByTagName('tbody')[0];
+                customerFeedbackTable.innerHTML = '';
+                data.customer.feedback.forEach(item => {
+                    const row = customerFeedbackTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = item.comment;
+                    row.cells[1].textContent = item.source;
+                });
+
+                // Project Health Indicator
+                const waterfallHealthIndicator = document.getElementById('waterfallHealthIndicator');
+                waterfallHealthIndicator.textContent = `Health: ${data.health}`;
+                waterfallHealthIndicator.className = 'health-indicator'; // Reset classes
+                if (data.health === 'Green') {
+                    waterfallHealthIndicator.classList.add('health-green');
+                } else if (data.health === 'Yellow') {
+                    waterfallHealthIndicator.classList.add('health-yellow');
+                } else if (data.health === 'Red') {
+                    waterfallHealthIndicator.classList.add('health-red');
+                }
+            }
+
+            function downloadWaterfallCharts() {
+                const chartList = [
+                    { canvas: document.getElementById('waterfallPhaseProgressChart'), name: 'phaseProgress' },
+                    { canvas: document.getElementById('waterfallMilestoneStatusChart'), name: 'milestoneStatus' },
+                    { canvas: document.getElementById('waterfallBudgetReportChart'), name: 'budgetReport' },
+                    { canvas: document.getElementById('waterfallTaskStatusChart'), name: 'taskStatus' },
+                    { canvas: document.getElementById('waterfallRiskDistributionChart'), name: 'riskDistribution' },
+                    { canvas: document.getElementById('waterfallResourceAllocationChart'), name: 'resourceAllocation' },
+                    { canvas: document.getElementById('waterfallPhaseTimelineChart'), name: 'phaseTimeline' },
+                    { canvas: document.getElementById('waterfallCostVarianceChart'), name: 'costVariance' },
+                    { canvas: document.getElementById('waterfallScheduleVarianceChart'), name: 'scheduleVariance' },
+                    { canvas: document.getElementById('waterfallTimeTrackingChart'), name: 'timeTracking' },
+                    { canvas: document.getElementById('waterfallTeamWorkloadChart'), name: 'teamWorkload' },
+                    { canvas: document.getElementById('waterfallIssueResolutionChart'), name: 'issueResolution' },
+                    { canvas: document.getElementById('waterfallDefectDensityChart'), name: 'defectDensity' },
+                    { canvas: document.getElementById('waterfallTestCoverageChart'), name: 'testCoverage' },
+                    { canvas: document.getElementById('waterfallReworkEffortChart'), name: 'reworkEffort' },
+                    { canvas: document.getElementById('waterfallSpiChart'), name: 'spi' },
+                    { canvas: document.getElementById('waterfallCpiChart'), name: 'cpi' },
+                    { canvas: document.getElementById('waterfallEvmChart'), name: 'evm' },
+                    { canvas: document.getElementById('waterfallTaskCompletionChart'), name: 'taskCompletion' },
+                    { canvas: document.getElementById('waterfallTeamVelocityChart'), name: 'teamVelocity' },
+                    { canvas: document.getElementById('waterfallCollaborationScoreChart'), name: 'collaborationScore' },
+                    { canvas: document.getElementById('waterfallTrainingHoursChart'), name: 'trainingHours' },
+                    { canvas: document.getElementById('waterfallCsatChart'), name: 'csat' },
+                    { canvas: document.getElementById('waterfallNpsChart'), name: 'nps' },
+                    { canvas: document.getElementById('waterfallCesChart'), name: 'ces' },
+                    { canvas: document.getElementById('waterfallTicketResolutionChart'), name: 'ticketResolution' }
+                ];
+                chartList.forEach(chart => {
+                    const url = chart.canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `waterfall_dashboard_${chart.name}.png`;
+                    link.click();
+                });
+            }
+        </script>
+    </div>
+
+    <!-- Agile Dashboard Section -->
+    <div id="agileDashboard" class="dashboard-content">
+        <h1>Comprehensive Agile Dashboard</h1>
+        <div class="controls mb-4">
+            <label for="agileSprintSelect" class="block text-gray-700 text-sm font-bold mb-2">Select Sprint: </label>
+            <select id="agileSprintSelect" onchange="updateAgileCharts()" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="1">Sprint 1</option>
+                <option value="2">Sprint 2</option>
+                <option value="3">Sprint 3</option>
+                <option value="4">Sprint 4</option>
+            </select>
+            <label for="agileFileInput" class="ml-4 block text-gray-700 text-sm font-bold mb-2">Upload Data File: </label>
+            <input type="file" id="agileFileInput" accept=".xlsx,.xls,.csv" onchange="handleAgileFileUpload(event)" class="ml-2">
+            <button onclick="downloadAgileCharts()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4">Download Charts as PNG</button>
+        </div>
+        <div class="dashboard">
+            <div class="chart-container">
+                <h2>Sprint Burndown</h2>
+                <canvas id="agileBurndownChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Burnup Chart</h2>
+                <canvas id="agileBurnupChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Sprint Report</h2>
+                <canvas id="agileSprintReportChart"></canvas>
+                <table id="agileSprintReportTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Metric</th><th class="py-2 px-4 border-b">Value</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Task Status</h2>
+                <canvas id="agileTaskStatusChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Risk Distribution</h2>
+                <canvas id="agileRiskDistributionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Epic Burndown</h2>
+                <canvas id="agileEpicBurndownChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Release Plan</h2>
+                <canvas id="agileReleasePlanChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Control Chart</h2>
+                <canvas id="agileControlChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Average Age Report</h2>
+                <canvas id="agileAverageAgeChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Time Tracking Report</h2>
+                <canvas id="agileTimeTrackingChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Time Sheet Report</h2>
+                <canvas id="agileTimeSheetChart"></canvas>
+                <table id="agileTimeSheetTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Member</th><th class="py-2 px-4 border-b">Hours Logged</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Created vs Resolved Issues</h2>
+                <canvas id="agileCreatedVsResolvedChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Workload Pie Chart</h2>
+                <canvas id="agileWorkloadPieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Issue Type Distribution</h2>
+                <canvas id="agilePieChartReport"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Version Workload</h2>
+                <canvas id="agileVersionWorkloadChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Team Velocity</h2>
+                <canvas id="agileVelocityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Recently Created Issues</h2>
+                <canvas id="agileRecentlyCreatedChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Cumulative Flow Diagram</h2>
+                <canvas id="agileCumulativeFlowChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Resolution Time Report</h2>
+                <canvas id="agileResolutionTimeChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Version Report</h2>
+                <canvas id="agileVersionReportChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Group By Priority</h2>
+                <canvas id="agileGroupByChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Epic Report</h2>
+                <canvas id="agileEpicReportChart"></canvas>
+                <table id="agileEpicReportTable" class="min-w-full bg-white mt-4 border border-gray-300 rounded-lg">
+                    <thead><tr class="bg-gray-100"><th class="py-2 px-4 border-b">Epic</th><th class="py-2 px-4 border-b">Completed</th><th class="py-2 px-4 border-b">Remaining</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="chart-container">
+                <h2>Time Since Issues</h2>
+                <canvas id="agileTimeSinceIssuesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Release Burndown</h2>
+                <canvas id="agileReleaseBurndownChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Sprint Health</h2>
+                <div id="agileHealthIndicator" class="health-indicator"></div>
+            </div>
+            <div class="chart-container">
+                <h2>Days in Column</h2>
+                <canvas id="agileDaysInColumnChart"></canvas>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            var agile_gk_isXlsx = false;
+            var agile_gk_xlsxFileLookup = {};
+            var agile_gk_fileData = {};
+            function agileFilledCell(cell) {
+                return cell !== '' && cell !== null;
+            }
+            function agileLoadFileData(filename) {
+                if (agile_gk_isXlsx && agile_gk_xlsxFileLookup[filename]) {
+                    try {
+                        var workbook = XLSX.read(agile_gk_fileData[filename], { type: 'base64' });
+                        var firstSheetName = workbook.SheetNames[0];
+                        var worksheet = workbook.Sheets[firstSheetName];
+                        var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                        var filteredData = jsonData.filter(row => row.some(agileFilledCell));
+                        var headerRowIndex = filteredData.findIndex((row, index) => row.filter(agileFilledCell).length >= filteredData[index + 1]?.filter(agileFilledCell).length);
+                        if (headerRowIndex === -1 || headerRowIndex > 25) {
+                            headerRowIndex = 0;
+                        }
+                        var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                        csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                        return csv;
+                    } catch (e) {
+                        console.error(e);
+                        return "";
+                    }
+                }
+                return agile_gk_fileData[filename] || "";
+            }
+
+            const agileSprintData = {
+                1: {
+                    burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [50, 45, 38, 30, 20, 10, 0], ideal: [50, 42.86, 35.71, 28.57, 21.43, 14.29, 0] },
+                    burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [0, 5, 12, 20, 30, 40, 50] },
+                    sprintReport: { planned: 50, completed: 45, carriedOver: 5 },
+                    tasks: { todo: 15, inProgress: 10, done: 25 },
+                    risks: { low: 10, medium: 5, high: 3 },
+                    epicBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [100, 80, 60, 40] },
+                    velocity: 30,
+                    cycleTime: [{ x: 'Task 1', y: 3 }, { x: 'Task 2', y: 5 }, { x: 'Task 3', y: 2 }, { x: 'Task 4', y: 7 }],
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], points: [20, 15, 25, 10], hours: [30, 25, 35, 20] },
+                    health: 'Green',
+                    averageAge: { bug: 5, story: 10, task: 7 },
+                    timeTracking: { estimated: 100, logged: 90 },
+                    createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [5, 3, 4, 2], resolved: [4, 4, 3, 5] },
+                    issueTypes: { story: 20, bug: 10, task: 15 },
+                    versionWorkload: { v1: 30, v2: 20 },
+                    recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [5, 3, 4, 2] },
+                    cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], todo: [20, 18, 15, 10], inProgress: [10, 12, 15, 10], done: [5, 10, 15, 25] },
+                    resolutionTime: { bug: 4, story: 6, task: 3 },
+                    versionReport: { v1: { completed: 25, remaining: 5 }, v2: { completed: 15, remaining: 5 } },
+                    groupByPriority: { low: 20, medium: 15, high: 10 },
+                    epicReport: { epic1: { completed: 30, remaining: 20 }, epic2: { completed: 20, remaining: 30 } },
+                    timeSinceIssues: { statuses: ['Open', 'In Progress', 'Done'], days: [10, 5, 2] },
+                    releaseBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [200, 150, 100, 50] },
+                    daysInColumn: { todo: 3, inProgress: 5, done: 1 }
+                },
+                2: {
+                    burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [60, 55, 45, 35, 25, 15, 5], ideal: [60, 51.43, 42.86, 34.29, 25.71, 17.14, 0] },
+                    burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [0, 5, 15, 25, 35, 45, 55] },
+                    sprintReport: { planned: 60, completed: 50, carriedOver: 10 },
+                    tasks: { todo: 12, inProgress: 8, done: 30 },
+                    risks: { low: 8, medium: 7, high: 2 },
+                    epicBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [80, 60, 40, 20] },
+                    velocity: 35,
+                    cycleTime: [{ x: 'Task 1', y: 4 }, { x: 'Task 2', y: 6 }, { x: 'Task 3', y: 3 }, { x: 'Task 4', y: 8 }],
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], points: [22, 18, 28, 12], hours: [32, 28, 38, 22] },
+                    health: 'Yellow',
+                    averageAge: { bug: 6, story: 12, task: 8 },
+                    timeTracking: { estimated: 120, logged: 110 },
+                    createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [6, 4, 5, 3], resolved: [5, 5, 4, 6] },
+                    issueTypes: { story: 25, bug: 12, task: 18 },
+                    versionWorkload: { v1: 35, v2: 25 },
+                    recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [6, 4, 5, 3] },
+                    cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], todo: [25, 20, 18, 12], inProgress: [12, 15, 18, 12], done: [8, 15, 20, 30] },
+                    resolutionTime: { bug: 5, story: 7, task: 4 },
+                    versionReport: { v1: { completed: 30, remaining: 10 }, v2: { completed: 20, remaining: 10 } },
+                    groupByPriority: { low: 25, medium: 18, high: 12 },
+                    epicReport: { epic1: { completed: 35, remaining: 25 }, epic2: { completed: 25, remaining: 35 } },
+                    timeSinceIssues: { statuses: ['Open', 'In Progress', 'Done'], days: [12, 6, 3] },
+                    releaseBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [180, 130, 80, 30] },
+                    daysInColumn: { todo: 4, inProgress: 6, done: 2 }
+                },
+                3: {
+                    burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [40, 35, 30, 25, 20, 10, 0], ideal: [40, 34.29, 28.57, 22.86, 17.14, 11.43, 0] },
+                    burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [0, 5, 10, 15, 20, 30, 40] },
+                    sprintReport: { planned: 40, completed: 38, carriedOver: 2 },
+                    tasks: { todo: 10, inProgress: 5, done: 25 },
+                    risks: { low: 7, medium: 3, high: 1 },
+                    epicBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [60, 40, 20, 10] },
+                    velocity: 28,
+                    cycleTime: [{ x: 'Task 1', y: 2 }, { x: 'Task 2', y: 4 }, { x: 'Task 3', y: 3 }, { x: 'Task 4', y: 6 }],
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], points: [18, 12, 22, 8], hours: [28, 22, 32, 18] },
+                    health: 'Green',
+                    averageAge: { bug: 4, story: 8, task: 6 },
+                    timeTracking: { estimated: 90, logged: 85 },
+                    createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [4, 2, 3, 1], resolved: [3, 3, 2, 4] },
+                    issueTypes: { story: 18, bug: 8, task: 12 },
+                    versionWorkload: { v1: 25, v2: 15 },
+                    recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [4, 2, 3, 1] },
+                    cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], todo: [18, 15, 12, 8], inProgress: [8, 10, 12, 8], done: [3, 8, 12, 20] },
+                    resolutionTime: { bug: 3, story: 5, task: 2 },
+                    versionReport: { v1: { completed: 20, remaining: 5 }, v2: { completed: 10, remaining: 5 } },
+                    groupByPriority: { low: 18, medium: 12, high: 8 },
+                    epicReport: { epic1: { completed: 25, remaining: 15 }, epic2: { completed: 15, remaining: 25 } },
+                    timeSinceIssues: { statuses: ['Open', 'In Progress', 'Done'], days: [8, 4, 1] },
+                    releaseBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [150, 100, 50, 10] },
+                    daysInColumn: { todo: 2, inProgress: 4, done: 1 }
+                },
+                4: {
+                    burndown: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [70, 65, 58, 50, 40, 20, 0], ideal: [70, 60, 50, 40, 30, 20, 0] },
+                    burnup: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'], points: [0, 5, 12, 20, 30, 50, 70] },
+                    sprintReport: { planned: 70, completed: 60, carriedOver: 10 },
+                    tasks: { todo: 20, inProgress: 15, done: 35 },
+                    risks: { low: 12, medium: 8, high: 4 },
+                    epicBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [120, 90, 60, 30] },
+                    velocity: 40,
+                    cycleTime: [{ x: 'Task 1', y: 5 }, { x: 'Task 2', y: 7 }, { x: 'Task 3', y: 4 }, { x: 'Task 4', y: 9 }],
+                    workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], points: [25, 20, 30, 15], hours: [35, 30, 40, 25] },
+                    health: 'Red',
+                    averageAge: { bug: 7, story: 15, task: 9 },
+                    timeTracking: { estimated: 150, logged: 140 },
+                    createdVsResolved: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], created: [7, 5, 6, 4], resolved: [6, 6, 5, 7] },
+                    issueTypes: { story: 30, bug: 15, task: 20 },
+                    versionWorkload: { v1: 40, v2: 30 },
+                    recentlyCreated: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], count: [7, 5, 6, 4] },
+                    cumulativeFlow: { days: ['Day 1', 'Day 2', 'Day 3', 'Day 4'], todo: [30, 25, 20, 15], inProgress: [15, 18, 20, 15], done: [10, 15, 20, 35] },
+                    resolutionTime: { bug: 6, story: 8, task: 5 },
+                    versionReport: { v1: { completed: 35, remaining: 10 }, v2: { completed: 25, remaining: 15 } },
+                    groupByPriority: { low: 25, medium: 20, high: 15 },
+                    epicReport: { epic1: { completed: 40, remaining: 30 }, epic2: { completed: 30, remaining: 40 } },
+                    timeSinceIssues: { statuses: ['Open', 'In Progress', 'Done'], days: [15, 8, 4] },
+                    releaseBurndown: { sprints: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'], points: [220, 170, 120, 70] },
+                    daysInColumn: { todo: 5, inProgress: 7, done: 3 }
+                }
+            };
+
+            const agileChartInstances = {}; // New object for agile charts
+
+            function createAgileChart(canvasId, config) {
+                const ctx = document.getElementById(canvasId)?.getContext('2d');
+                if (ctx) {
+                    if (agileChartInstances[canvasId]) {
+                        agileChartInstances[canvasId].destroy(); // Destroy existing chart before creating a new one
+                    }
+                    agileChartInstances[canvasId] = new Chart(ctx, config);
+                } else {
+                    console.error(`Canvas element with ID '${canvasId}' not found.`);
+                }
+            }
+
+            function updateAgileCharts(sprintId = document.getElementById('agileSprintSelect').value) {
+                const data = agileSprintData[sprintId];
+                if (!data) return;
+
+                // Burndown Chart
+                createAgileChart('agileBurndownChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.burndown.days,
+                        datasets: [
+                            {
+                                label: 'Remaining Story Points',
+                                data: data.burndown.points,
+                                borderColor: 'red',
+                                fill: false
+                            },
+                            {
+                                label: 'Ideal Burndown',
+                                data: data.burndown.ideal,
+                                borderColor: 'blue',
+                                borderDash: [5, 5],
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Sprint Burndown' } } }
+                });
+
+                // Burnup Chart
+                createAgileChart('agileBurnupChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.burnup.days,
+                        datasets: [
+                            {
+                                label: 'Completed Story Points',
+                                data: data.burnup.points,
+                                borderColor: 'green',
+                                fill: true,
+                                backgroundColor: 'rgba(0,255,0,0.1)'
+                            }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Burnup Chart' } } }
+                });
+
+                // Sprint Report Chart and Table
+                createAgileChart('agileSprintReportChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Planned', 'Completed', 'Carried Over'],
+                        datasets: [{
+                            label: 'Story Points',
+                            data: [data.sprintReport.planned, data.sprintReport.completed, data.sprintReport.carriedOver],
+                            backgroundColor: ['#4CAF50', '#2196F3', '#FFC107']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Sprint Report' } } }
+                });
+                const sprintReportTable = document.getElementById('agileSprintReportTable').getElementsByTagName('tbody')[0];
+                sprintReportTable.innerHTML = `
+                    <tr><td class="py-2 px-4 border-b">Planned Story Points</td><td class="py-2 px-4 border-b">${data.sprintReport.planned}</td></tr>
+                    <tr><td class="py-2 px-4 border-b">Completed Story Points</td><td class="py-2 px-4 border-b">${data.sprintReport.completed}</td></tr>
+                    <tr><td class="py-2 px-4 border-b">Carried Over Story Points</td><td class="py-2 px-4 border-b">${data.sprintReport.carriedOver}</td></tr>
+                `;
+
+                // Task Status Chart
+                createAgileChart('agileTaskStatusChart', {
+                    type: 'pie',
+                    data: {
+                        labels: ['To Do', 'In Progress', 'Done'],
+                        datasets: [{
+                            data: [data.tasks.todo, data.tasks.inProgress, data.tasks.done],
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Task Status' } } }
+                });
+
+                // Risk Distribution Chart
+                createAgileChart('agileRiskDistributionChart', {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Low', 'Medium', 'High'],
+                        datasets: [{
+                            data: [data.risks.low, data.risks.medium, data.risks.high],
+                            backgroundColor: ['#4CAF50', '#FFC107', '#DC3545']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Risk Distribution' } } }
+                });
+
+                // Epic Burndown Chart
+                createAgileChart('agileEpicBurndownChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.epicBurndown.sprints,
+                        datasets: [{
+                            label: 'Remaining Epic Points',
+                            data: data.epicBurndown.points,
+                            borderColor: '#9C27B0',
+                            fill: false
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Epic Burndown' } } }
+                });
+
+                // Release Plan Chart (using mock data for simplicity)
+                createAgileChart('agileReleasePlanChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Release 1', 'Release 2', 'Release 3'],
+                        datasets: [{
+                            label: 'Features Completed',
+                            data: [80, 50, 20],
+                            backgroundColor: ['#00BCD4', '#FF9800', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Release Plan' } } }
+                });
+
+                // Control Chart (mock data)
+                createAgileChart('agileControlChart', {
+                    type: 'line',
+                    data: {
+                        labels: ['Ticket 1', 'Ticket 2', 'Ticket 3', 'Ticket 4', 'Ticket 5'],
+                        datasets: [
+                            {
+                                label: 'Cycle Time',
+                                data: [3, 5, 2, 7, 4],
+                                borderColor: '#795548',
+                                fill: false
+                            },
+                            {
+                                label: 'Upper Control Limit (UCL)',
+                                data: [6, 6, 6, 6, 6],
+                                borderColor: '#F44336',
+                                borderDash: [5, 5],
+                                fill: false
+                            },
+                            {
+                                label: 'Lower Control Limit (LCL)',
+                                data: [2, 2, 2, 2, 2],
+                                borderColor: '#2196F3',
+                                borderDash: [5, 5],
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Control Chart' } } }
+                });
+
+                // Average Age Report Chart
+                createAgileChart('agileAverageAgeChart', {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.averageAge),
+                        datasets: [{
+                            label: 'Average Age (Days)',
+                            data: Object.values(data.averageAge),
+                            backgroundColor: ['#673AB7', '#FFEB3B', '#8BC34A']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Average Age Report' } } }
+                });
+
+                // Time Tracking Report
+                createAgileChart('agileTimeTrackingChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Estimated Hours', 'Logged Hours'],
+                        datasets: [{
+                            label: 'Hours',
+                            data: [data.timeTracking.estimated, data.timeTracking.logged],
+                            backgroundColor: ['#FF5722', '#CDDC39']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Time Tracking Report' } } }
+                });
+
+                // Time Sheet Report Table (assuming workload data can be used for time sheet)
+                const timeSheetTable = document.getElementById('agileTimeSheetTable').getElementsByTagName('tbody')[0];
+                timeSheetTable.innerHTML = '';
+                data.workload.members.forEach((member, index) => {
+                    const row = timeSheetTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = member;
+                    row.cells[1].textContent = data.workload.hours[index];
+                });
+
+                // Created vs Resolved Issues Chart
+                createAgileChart('agileCreatedVsResolvedChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.createdVsResolved.days,
+                        datasets: [
+                            {
+                                label: 'Created Issues',
+                                data: data.createdVsResolved.created,
+                                borderColor: '#F44336',
+                                fill: false
+                            },
+                            {
+                                label: 'Resolved Issues',
+                                data: data.createdVsResolved.resolved,
+                                borderColor: '#4CAF50',
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Created vs Resolved Issues' } } }
+                });
+
+                // Workload Pie Chart
+                createAgileChart('agileWorkloadPieChart', {
+                    type: 'pie',
+                    data: {
+                        labels: data.workload.members,
+                        datasets: [{
+                            data: data.workload.points,
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Workload Distribution (Story Points)' } } }
+                });
+
+                // Issue Type Distribution (Pie Chart Report)
+                createAgileChart('agilePieChartReport', {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(data.issueTypes),
+                        datasets: [{
+                            data: Object.values(data.issueTypes),
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Issue Type Distribution' } } }
+                });
+
+                // Version Workload
+                createAgileChart('agileVersionWorkloadChart', {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.versionWorkload),
+                        datasets: [{
+                            label: 'Story Points',
+                            data: Object.values(data.versionWorkload),
+                            backgroundColor: ['#FF6384', '#36A2EB']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Version Workload' } } }
+                });
+
+                // Velocity Chart
+                createAgileChart('agileVelocityChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4'],
+                        datasets: [{
+                            label: 'Velocity (Story Points)',
+                            data: [30, 35, 28, 40], // Example data, should ideally come from sprintData
+                            backgroundColor: '#4BC0C0'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Team Velocity' } } }
+                });
+
+                // Recently Created Issues
+                createAgileChart('agileRecentlyCreatedChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.recentlyCreated.days,
+                        datasets: [{
+                            label: 'Number of Issues',
+                            data: data.recentlyCreated.count,
+                            backgroundColor: '#FFCD56'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Recently Created Issues' } } }
+                });
+
+                // Cumulative Flow Diagram
+                createAgileChart('agileCumulativeFlowChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.cumulativeFlow.days,
+                        datasets: [
+                            { label: 'To Do', data: data.cumulativeFlow.todo, borderColor: '#FF6384', fill: true, backgroundColor: 'rgba(255,99,132,0.2)' },
+                            { label: 'In Progress', data: data.cumulativeFlow.inProgress, borderColor: '#36A2EB', fill: true, backgroundColor: 'rgba(54,162,235,0.2)' },
+                            { label: 'Done', data: data.cumulativeFlow.done, borderColor: '#4CAF50', fill: true, backgroundColor: 'rgba(76,175,80,0.2)' }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Cumulative Flow Diagram' } } }
+                });
+
+                // Resolution Time Report
+                createAgileChart('agileResolutionTimeChart', {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.resolutionTime),
+                        datasets: [{
+                            label: 'Avg Resolution Time (Days)',
+                            data: Object.values(data.resolutionTime),
+                            backgroundColor: ['#673AB7', '#FFEB3B', '#8BC34A']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Resolution Time Report' } } }
+                });
+
+                // Version Report Chart and Table
+                createAgileChart('agileVersionReportChart', {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.versionReport),
+                        datasets: [
+                            {
+                                label: 'Completed Story Points',
+                                data: Object.values(data.versionReport).map(v => v.completed),
+                                backgroundColor: '#4CAF50'
+                            },
+                            {
+                                label: 'Remaining Story Points',
+                                data: Object.values(data.versionReport).map(v => v.remaining),
+                                backgroundColor: '#FFC107'
+                            }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Version Report' } } }
+                });
+
+                // Group By Priority Chart
+                createAgileChart('agileGroupByChart', {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.groupByPriority),
+                        datasets: [{
+                            label: 'Number of Issues',
+                            data: Object.values(data.groupByPriority),
+                            backgroundColor: ['#DC3545', '#FFC107', '#4CAF50']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Group By Priority' } } }
+                });
+
+                // Epic Report Chart and Table
+                createAgileChart('agileEpicReportChart', {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.epicReport),
+                        datasets: [
+                            {
+                                label: 'Completed Story Points',
+                                data: Object.values(data.epicReport).map(e => e.completed),
+                                backgroundColor: '#2196F3'
+                            },
+                            {
+                                label: 'Remaining Story Points',
+                                data: Object.values(data.epicReport).map(e => e.remaining),
+                                backgroundColor: '#FFC107'
+                            }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Epic Report' } } }
+                });
+                const epicReportTable = document.getElementById('agileEpicReportTable').getElementsByTagName('tbody')[0];
+                epicReportTable.innerHTML = '';
+                for (const epic in data.epicReport) {
+                    const row = epicReportTable.insertRow();
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.insertCell().classList.add('py-2', 'px-4', 'border-b');
+                    row.cells[0].textContent = epic;
+                    row.cells[1].textContent = data.epicReport[epic].completed;
+                    row.cells[2].textContent = data.epicReport[epic].remaining;
+                }
+
+                // Time Since Issues Chart
+                createAgileChart('agileTimeSinceIssuesChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.timeSinceIssues.statuses,
+                        datasets: [{
+                            label: 'Days',
+                            data: data.timeSinceIssues.days,
+                            backgroundColor: ['#FF6384', '#36A2EB', '#4CAF50']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Time Since Issues' } } }
+                });
+
+                // Release Burndown
+                createAgileChart('agileReleaseBurndownChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.releaseBurndown.sprints,
+                        datasets: [{
+                            label: 'Remaining Release Points',
+                            data: data.releaseBurndown.points,
+                            borderColor: '#8B008B',
+                            fill: false
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Release Burndown' } } }
+                });
+
+                // Sprint Health Indicator
+                const healthIndicator = document.getElementById('agileHealthIndicator');
+                healthIndicator.textContent = `Health: ${data.health}`;
+                healthIndicator.className = 'health-indicator'; // Reset classes
+                if (data.health === 'Green') {
+                    healthIndicator.classList.add('health-green');
+                } else if (data.health === 'Yellow') {
+                    healthIndicator.classList.add('health-yellow');
+                } else if (data.health === 'Red') {
+                    healthIndicator.classList.add('health-red');
+                }
+
+                // Days in Column Chart
+                createAgileChart('agileDaysInColumnChart', {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.daysInColumn),
+                        datasets: [{
+                            label: 'Average Days',
+                            data: Object.values(data.daysInColumn),
+                            backgroundColor: ['#607D8B', '#FF9800', '#7CB342']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Days in Column' } } }
+                });
+            }
+
+            function handleAgileFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = e.target.result;
+                    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        agile_gk_isXlsx = true;
+                        agile_gk_xlsxFileLookup[file.name] = true;
+                        agile_gk_fileData[file.name] = data.split(',')[1]; // Base64 content
+                    } else if (file.name.endsWith('.csv')) {
+                        agile_gk_isXlsx = false;
+                        agile_gk_fileData[file.name] = data;
+                    }
+                    alert('File uploaded, but dynamic chart updating from file is not fully implemented in this combined dashboard.');
+                };
+
+                if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                    reader.readAsDataURL(file);
+                } else {
+                    reader.readAsText(file);
+                }
+            }
+
+            function downloadAgileCharts() {
+                const chartList = [
+                    { canvas: document.getElementById('agileBurndownChart'), name: 'burndown' },
+                    { canvas: document.getElementById('agileBurnupChart'), name: 'burnup' },
+                    { canvas: document.getElementById('agileSprintReportChart'), name: 'sprintReport' },
+                    { canvas: document.getElementById('agileTaskStatusChart'), name: 'taskStatus' },
+                    { canvas: document.getElementById('agileRiskDistributionChart'), name: 'riskDistribution' },
+                    { canvas: document.getElementById('agileEpicBurndownChart'), name: 'epicBurndown' },
+                    { canvas: document.getElementById('agileReleasePlanChart'), name: 'releasePlan' },
+                    { canvas: document.getElementById('agileControlChart'), name: 'control' },
+                    { canvas: document.getElementById('agileAverageAgeChart'), name: 'averageAge' },
+                    { canvas: document.getElementById('agileTimeTrackingChart'), name: 'timeTracking' },
+                    { canvas: document.getElementById('agileTimeSheetChart'), name: 'timeSheet' },
+                    { canvas: document.getElementById('agileCreatedVsResolvedChart'), name: 'createdVsResolved' },
+                    { canvas: document.getElementById('agileWorkloadPieChart'), name: 'workloadPie' },
+                    { canvas: document.getElementById('agilePieChartReport'), name: 'pieChartReport' },
+                    { canvas: document.getElementById('agileVersionWorkloadChart'), name: 'versionWorkload' },
+                    { canvas: document.getElementById('agileVelocityChart'), name: 'velocity' },
+                    { canvas: document.getElementById('agileRecentlyCreatedChart'), name: 'recentlyCreated' },
+                    { canvas: document.getElementById('agileCumulativeFlowChart'), name: 'cumulativeFlow' },
+                    { canvas: document.getElementById('agileResolutionTimeChart'), name: 'resolutionTime' },
+                    { canvas: document.getElementById('agileVersionReportChart'), name: 'versionReport' },
+                    { canvas: document.getElementById('agileGroupByChart'), name: 'groupBy' },
+                    { canvas: document.getElementById('agileEpicReportChart'), name: 'epicReport' },
+                    { canvas: document.getElementById('agileTimeSinceIssuesChart'), name: 'timeSinceIssues' },
+                    { canvas: document.getElementById('agileReleaseBurndownChart'), name: 'releaseBurndown' },
+                    { canvas: document.getElementById('agileDaysInColumnChart'), name: 'daysInColumn' }
+                ];
+                chartList.forEach(chart => {
+                    const url = chart.canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `agile_dashboard_${chart.name}.png`;
+                    link.click();
+                });
+            }
+        </script>
+    </div>
+
+    <!-- IT Support Dashboard Section -->
+    <div id="itSupportDashboard" class="dashboard-content">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">IT Support Project Dashboard</h1>
+        <div class="dashboard">
+            <!-- Ticket Overview -->
+            <div class="chart-container">
+                <canvas id="itTicketOverview"></canvas>
+            </div>
+            <!-- Priority Breakdown -->
+            <div class="chart-container">
+                <canvas id="itPriorityBreakdown"></canvas>
+            </div>
+            <!-- SLA Compliance -->
+            <div class="chart-container">
+                <canvas id="itSlaCompliance"></canvas>
+            </div>
+            <!-- FCR Rate -->
+            <div class="chart-container">
+                <canvas id="itFcrRate"></canvas>
+            </div>
+            <!-- Ticket Reopen Rate -->
+            <div class="chart-container">
+                <canvas id="itTicketReopenRate"></canvas>
+            </div>
+            <!-- Support Level Breakdown -->
+            <div class="chart-container">
+                <canvas id="itSupportLevelBreakdown"></canvas>
+            </div>
+            <!-- Escalations -->
+            <div class="chart-container">
+                <canvas id="itEscalations"></canvas>
+            </div>
+            <!-- Top 5 Issue Types -->
+            <div class="chart-container">
+                <canvas id="itTopIssueTypes"></canvas>
+            </div>
+            <!-- Repetitive Work -->
+            <div class="chart-container">
+                <canvas id="itRepetitiveWork"></canvas>
+            </div>
+            <!-- WIP Limits -->
+            <div class="chart-container">
+                <canvas id="itWipLimits"></canvas>
+            </div>
+            <!-- Lead Time -->
+            <div class="chart-container">
+                <canvas id="itLeadTime"></canvas>
+            </div>
+            <!-- Cycle Time -->
+            <div class="chart-container">
+                <canvas id="itCycleTime"></canvas>
+            </div>
+            <!-- Resolution Time -->
+            <div class="chart-container">
+                <canvas id="itResolutionTime"></canvas>
+            </div>
+            <!-- Throughput -->
+            <div class="chart-container">
+                <canvas id="itThroughput"></canvas>
+            </div>
+            <!-- Backlog Growth Rate -->
+            <div class="chart-container">
+                <canvas id="itBacklogGrowthRate"></canvas>
+            </div>
+            <!-- Agent Performance (Tickets Resolved) -->
+            <div class="chart-container">
+                <canvas id="itAgentPerformanceTickets"></canvas>
+            </div>
+            <!-- Agent Performance (Response Time) -->
+            <div class="chart-container">
+                <canvas id="itAgentPerformanceResponse"></canvas>
+            </div>
+            <!-- CSAT -->
+            <div class="chart-container">
+                <canvas id="itCsat"></canvas>
+            </div>
+            <!-- CES -->
+            <div class="chart-container">
+                <canvas id="itCes"></canvas>
+            </div>
+            <!-- MTTD/MTTR -->
+            <div class="chart-container">
+                <canvas id="itMttdMttr"></canvas>
+            </div>
+            <!-- Control Chart -->
+            <div class="chart-container col-span-1 md:col-span-2 lg:col-span-3">
+                <canvas id="itControlChart"></canvas>
+            </div>
+            <!-- Monthly Trends -->
+            <div class="chart-container col-span-1 md:col-span-2 lg:col-span-2">
+                <canvas id="itMonthlyTrends"></canvas>
+            </div>
+            <!-- Cumulative Flow Diagram -->
+            <div class="chart-container col-span-1 md:col-span-3 lg:col-span-5">
+                <canvas id="itCumulativeFlow"></canvas>
+            </div>
+        </div>
+
+        <script>
+            const itSupportChartInstances = {}; // New object for IT Support charts
+
+            // Error handling wrapper
+            function createItSupportChart(canvasId, config) {
+                try {
+                    const ctx = document.getElementById(canvasId)?.getContext('2d');
+                    if (!ctx) throw new Error(`Canvas not found: ${canvasId}`);
+                    if (itSupportChartInstances[canvasId]) {
+                        itSupportChartInstances[canvasId].destroy();
+                    }
+                    itSupportChartInstances[canvasId] = new Chart(ctx, config);
+                } catch (error) {
+                    console.error(`Error creating chart ${canvasId}:`, error);
+                }
+            }
+
+            function initializeItSupportCharts() {
+                // Chart configurations
+                createItSupportChart('itTicketOverview', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Open', 'Closed', 'In Progress', 'Backlog'],
+                        datasets: [{
+                            label: 'Ticket Count',
+                            data: [50, 100, 30, 20],
+                            backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Ticket Overview' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itPriorityBreakdown', {
+                    type: 'pie',
+                    data: {
+                        labels: ['P1', 'P2', 'P3', 'P4'],
+                        datasets: [{
+                            data: [10, 30, 40, 20],
+                            backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { plugins: { legend: { position: 'top' }, title: { display: true, text: 'Priority Breakdown' } } }
+                });
+
+                createItSupportChart('itSlaCompliance', {
+                    type: 'bar',
+                    data: {
+                        labels: ['P1', 'P2', 'P3', 'P4'],
+                        datasets: [{
+                            label: 'SLA Compliance (%)',
+                            data: [95, 90, 85, 80],
+                            backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'SLA Compliance' } },
+                        scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'Compliance %' } } }
+                    }
+                });
+
+                createItSupportChart('itFcrRate', {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['FCR', 'Non-FCR'],
+                        datasets: [{
+                            data: [75, 25],
+                            backgroundColor: ['#4ECDC4', '#FF6B6B'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { plugins: { legend: { position: 'top' }, title: { display: true, text: 'First Contact Resolution Rate' } } }
+                });
+
+                createItSupportChart('itTicketReopenRate', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Reopened', 'Closed without Reopen'],
+                        datasets: [{
+                            label: 'Tickets',
+                            data: [15, 85],
+                            backgroundColor: ['#FF6B6B', '#4ECDC4'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Ticket Reopen Rate' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itSupportLevelBreakdown', {
+                    type: 'pie',
+                    data: {
+                        labels: ['Level 1', 'Level 2', 'Level 3'],
+                        datasets: [{
+                            data: [60, 30, 10],
+                            backgroundColor: ['#45B7D1', '#FFC107', '#FF6B6B'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { plugins: { legend: { position: 'top' }, title: { display: true, text: 'Support Level Breakdown' } } }
+                });
+
+                createItSupportChart('itEscalations', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Total Escalations', 'Resolved Escalations'],
+                        datasets: [{
+                            label: 'Count',
+                            data: [20, 15],
+                            backgroundColor: ['#FF6B6B', '#4ECDC4'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Escalations' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Count' } } }
+                    }
+                });
+
+                createItSupportChart('itTopIssueTypes', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Password Reset', 'Software Install', 'Network Issue', 'Hardware Repair', 'Access Request'],
+                        datasets: [{
+                            label: 'Ticket Count',
+                            data: [25, 20, 15, 10, 8],
+                            backgroundColor: ['#4ECDC4', '#45B7D1', '#96CEB4', '#FF6B6B', '#FFC107'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', // Horizontal bar chart
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Top 5 Issue Types' } },
+                        scales: { x: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itRepetitiveWork', {
+                    type: 'pie',
+                    data: {
+                        labels: ['Automated', 'Manual'],
+                        datasets: [{
+                            data: [40, 60],
+                            backgroundColor: ['#4ECDC4', '#FF6B6B'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { plugins: { legend: { position: 'top' }, title: { display: true, text: 'Repetitive Work' } } }
+                });
+
+                createItSupportChart('itWipLimits', {
+                    type: 'bar',
+                    data: {
+                        labels: ['In Progress', 'WIP Limit'],
+                        datasets: [{
+                            label: 'Tickets',
+                            data: [30, 40],
+                            backgroundColor: ['#45B7D1', '#FF6B6B'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'WIP Limits' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itLeadTime', {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                        datasets: [{
+                            label: 'Average Lead Time (Hours)',
+                            data: [24, 22, 20, 18, 15],
+                            borderColor: '#4ECDC4',
+                            backgroundColor: 'rgba(78, 205, 196, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Lead Time' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+                    }
+                });
+
+                createItSupportChart('itCycleTime', {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                        datasets: [{
+                            label: 'Average Cycle Time (Hours)',
+                            data: [18, 16, 15, 14, 12],
+                            borderColor: '#45B7D1',
+                            backgroundColor: 'rgba(69, 183, 209, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Cycle Time' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+                    }
+                });
+
+                createItSupportChart('itResolutionTime', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Urgent', 'High', 'Medium', 'Low'],
+                        datasets: [{
+                            label: 'Average Resolution Time (Hours)',
+                            data: [4, 8, 16, 24],
+                            backgroundColor: ['#FF6B6B', '#FFC107', '#45B7D1', '#4ECDC4'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Resolution Time by Priority' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+                    }
+                });
+
+                createItSupportChart('itThroughput', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                        datasets: [{
+                            label: 'Tickets Resolved',
+                            data: [100, 110, 105, 120, 115],
+                            backgroundColor: '#96CEB4',
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Throughput (Tickets Resolved)' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itBacklogGrowthRate', {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                        datasets: [{
+                            label: 'Backlog Tickets',
+                            data: [20, 25, 22, 28, 30],
+                            borderColor: '#FF6B6B',
+                            backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Backlog Growth Rate' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itAgentPerformanceTickets', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Agent A', 'Agent B', 'Agent C', 'Agent D'],
+                        datasets: [{
+                            label: 'Tickets Resolved',
+                            data: [40, 35, 45, 30],
+                            backgroundColor: ['#4ECDC4', '#45B7D1', '#96CEB4', '#FFC107'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Agent Performance (Tickets Resolved)' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itAgentPerformanceResponse', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Agent A', 'Agent B', 'Agent C', 'Agent D'],
+                        datasets: [{
+                            label: 'Avg Response Time (Hours)',
+                            data: [2, 3, 2.5, 3.5],
+                            backgroundColor: ['#FF6B6B', '#45B7D1', '#4ECDC4', '#FFC107'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Agent Performance (Avg Response Time)' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+                    }
+                });
+
+                createItSupportChart('itCsat', {
+                    type: 'bar', // For demonstration, if gauge is not supported by default Chart.js
+                    data: {
+                        labels: ['CSAT'],
+                        datasets: [{
+                            label: 'Score',
+                            data: [85],
+                            backgroundColor: '#4ECDC4'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'CSAT Score' } },
+                        scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score' } } }
+                    }
+                });
+
+                createItSupportChart('itCes', {
+                    type: 'bar',
+                    data: {
+                        labels: ['CES'],
+                        datasets: [{
+                            label: 'Score',
+                            data: [3],
+                            backgroundColor: '#45B7D1'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Customer Effort Score (CES)' } },
+                        scales: { y: { beginAtZero: true, max: 5, title: { display: true, text: 'Score (1-5)' } } }
+                    }
+                });
+
+                createItSupportChart('itMttdMttr', {
+                    type: 'bar',
+                    data: {
+                        labels: ['MTTD (Minutes)', 'MTTR (Minutes)'],
+                        datasets: [{
+                            label: 'Time',
+                            data: [30, 120],
+                            backgroundColor: ['#FF6B6B', '#4ECDC4'],
+                            borderColor: ['#FFFFFF'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false }, title: { display: true, text: 'MTTD / MTTR' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Minutes' } } }
+                    }
+                });
+
+                createItSupportChart('itControlChart', {
+                    type: 'line',
+                    data: {
+                        labels: ['Ticket 1', 'Ticket 2', 'Ticket 3', 'Ticket 4', 'Ticket 5', 'Ticket 6', 'Ticket 7', 'Ticket 8', 'Ticket 9', 'Ticket 10'],
+                        datasets: [
+                            {
+                                label: 'Cycle Time',
+                                data: [3.2, 4.5, 2.8, 5.1, 3.9, 4.2, 3.5, 4.8, 3.0, 5.5],
+                                borderColor: '#4ECDC4',
+                                backgroundColor: 'rgba(78, 205, 196, 0.2)',
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Upper Control Limit (UCL)',
+                                data: [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
+                                borderColor: '#FF6B6B',
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0
+                            },
+                            {
+                                label: 'Lower Control Limit (LCL)',
+                                data: [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+                                borderColor: '#45B7D1',
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Control Chart (Cycle Time)' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+                    }
+                });
+
+                createItSupportChart('itMonthlyTrends', {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                        datasets: [
+                            {
+                                label: 'Tickets Received',
+                                data: [150, 160, 155, 170, 165],
+                                borderColor: '#FF6B6B',
+                                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Tickets Closed',
+                                data: [100, 155, 205, 270, 330],
+                                borderColor: '#4ECDC4',
+                                backgroundColor: '#4ECDC4',
+                                fill: false,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Monthly Trends' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+
+                createItSupportChart('itCumulativeFlow', {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                        datasets: [
+                            {
+                                label: 'Open',
+                                data: [50, 60, 55, 70, 65],
+                                borderColor: '#FF6B6B',
+                                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'In Progress',
+                                data: [30, 35, 32, 40, 38],
+                                borderColor: '#45B7D1',
+                                backgroundColor: 'rgba(69, 183, 209, 0.2)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Closed',
+                                data: [100, 155, 205, 270, 330],
+                                borderColor: '#4ECDC4',
+                                backgroundColor: '#4ECDC4',
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        plugins: { legend: { position: 'top' }, title: { display: true, text: 'Cumulative Flow Diagram' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Tickets' } } }
+                    }
+                });
+            }
+        </script>
+    </div>
+
+    <!-- Extreme Programming (XP) Dashboard Section -->
+    <div id="xpDashboard" class="dashboard-content">
+        <h1>Extreme Programming (XP) Dashboard</h1>
+        <div class="controls mb-4">
+            <label for="xpIterationSelect" class="block text-gray-700 text-sm font-bold mb-2">Select Iteration: </label>
+            <select id="xpIterationSelect" onchange="updateXpCharts()" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <option value="1">Iteration 1</option>
+                <option value="2">Iteration 2</option>
+                <option value="3">Iteration 3</option>
+                <option value="4">Iteration 4</option>
+            </select>
+            <button onclick="downloadXpCharts()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4">Download Charts as PNG</button>
+        </div>
+        <div class="dashboard">
+            <div class="chart-container">
+                <h2>Test Coverage (%)</h2>
+                <canvas id="xpTestCoverageChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Build Success Rate (%)</h2>
+                <canvas id="xpBuildSuccessRateChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Refactoring Progress (Hours)</h2>
+                <canvas id="xpRefactoringProgressChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Stories Completed</h2>
+                <canvas id="xpStoriesCompletedChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Pair Programming Hours</h2>
+                <canvas id="xpPairProgrammingHoursChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Customer Feedback Sentiment</h2>
+                <canvas id="xpCustomerFeedbackChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Code Quality Score</h2>
+                <canvas id="xpCodeQualityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Deployment Frequency</h2>
+                <canvas id="xpDeploymentFrequencyChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Defect Escape Rate</h2>
+                <canvas id="xpDefectEscapeRateChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Technical Debt (Estimated Hours)</h2>
+                <canvas id="xpTechnicalDebtChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Iteration Velocity</h2>
+                <canvas id="xpIterationVelocityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Bus Factor</h2>
+                <canvas id="xpBusFactorChart"></canvas>
+            </div>
+             <div class="chart-container">
+                <h2>Unit Tests Passed</h2>
+                <canvas id="xpUnitTestsPassedChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Acceptance Tests Passed</h2>
+                <canvas id="xpAcceptanceTestsPassedChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Daily Standup Participation</h2>
+                <canvas id="xpDailyStandupParticipationChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Retrospective Action Items Completion</h2>
+                <canvas id="xpRetrospectiveActionItemsChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Continuous Integration Status</h2>
+                <div id="xpContinuousIntegrationStatus" class="health-indicator"></div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            const xpChartInstances = {}; // New object for XP charts
+
+            const xpIterationData = {
+                1: {
+                    testCoverage: 90,
+                    buildSuccessRate: 98,
+                    refactoringProgress: { labels: ['Week 1', 'Week 2', 'Week 3'], hours: [10, 15, 12] },
+                    storiesCompleted: { labels: ['Iteration 1', 'Iteration 2', 'Iteration 3'], count: [5, 6, 4] },
+                    pairProgrammingHours: { labels: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [20, 18, 22, 15] },
+                    customerFeedback: { positive: 70, neutral: 20, negative: 10 },
+                    codeQualityScore: 85,
+                    deploymentFrequency: { labels: ['Week 1', 'Week 2', 'Week 3'], count: [3, 4, 2] },
+                    defectEscapeRate: 0.5,
+                    technicalDebt: 100,
+                    iterationVelocity: 25,
+                    busFactor: 3,
+                    unitTestsPassed: 95,
+                    acceptanceTestsPassed: 80,
+                    dailyStandupParticipation: 100,
+                    retrospectiveActionItems: { completed: 8, total: 10 },
+                    ciStatus: 'Green'
+                },
+                2: {
+                    testCoverage: 88,
+                    buildSuccessRate: 95,
+                    refactoringProgress: { labels: ['Week 1', 'Week 2', 'Week 3'], hours: [12, 10, 18] },
+                    storiesCompleted: { labels: ['Iteration 1', 'Iteration 2', 'Iteration 3'], count: [6, 7, 5] },
+                    pairProgrammingHours: { labels: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [22, 20, 25, 18] },
+                    customerFeedback: { positive: 65, neutral: 25, negative: 10 },
+                    codeQualityScore: 82,
+                    deploymentFrequency: { labels: ['Week 1', 'Week 2', 'Week 3'], count: [4, 3, 5] },
+                    defectEscapeRate: 0.8,
+                    technicalDebt: 120,
+                    iterationVelocity: 28,
+                    busFactor: 3,
+                    unitTestsPassed: 92,
+                    acceptanceTestsPassed: 75,
+                    dailyStandupParticipation: 95,
+                    retrospectiveActionItems: { completed: 7, total: 9 },
+                    ciStatus: 'Yellow'
+                },
+                3: {
+                    testCoverage: 92,
+                    buildSuccessRate: 99,
+                    refactoringProgress: { labels: ['Week 1', 'Week 2', 'Week 3'], hours: [8, 12, 10] },
+                    storiesCompleted: { labels: ['Iteration 1', 'Iteration 2', 'Iteration 3'], count: [7, 5, 6] },
+                    pairProgrammingHours: { labels: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [25, 20, 20, 17] },
+                    customerFeedback: { positive: 75, neutral: 15, negative: 10 },
+                    codeQualityScore: 88,
+                    deploymentFrequency: { labels: ['Week 1', 'Week 2', 'Week 3'], count: [5, 4, 3] },
+                    defectEscapeRate: 0.3,
+                    technicalDebt: 90,
+                    iterationVelocity: 30,
+                    busFactor: 4,
+                    unitTestsPassed: 98,
+                    acceptanceTestsPassed: 85,
+                    dailyStandupParticipation: 100,
+                    retrospectiveActionItems: { completed: 9, total: 10 },
+                    ciStatus: 'Green'
+                },
+                4: {
+                    testCoverage: 85,
+                    buildSuccessRate: 90,
+                    refactoringProgress: { labels: ['Week 1', 'Week 2', 'Week 3'], hours: [15, 20, 18] },
+                    storiesCompleted: { labels: ['Iteration 1', 'Iteration 2', 'Iteration 3'], count: [4, 3, 7] },
+                    pairProgrammingHours: { labels: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [18, 15, 17, 20] },
+                    customerFeedback: { positive: 60, neutral: 30, negative: 10 },
+                    codeQualityScore: 78,
+                    deploymentFrequency: { labels: ['Week 1', 'Week 2', 'Week 3'], count: [2, 3, 4] },
+                    defectEscapeRate: 1.0,
+                    technicalDebt: 150,
+                    iterationVelocity: 22,
+                    busFactor: 2,
+                    unitTestsPassed: 88,
+                    acceptanceTestsPassed: 70,
+                    dailyStandupParticipation: 90,
+                    retrospectiveActionItems: { completed: 6, total: 8 },
+                    ciStatus: 'Red'
+                }
+            };
+
+            function createXpChart(canvasId, config) {
+                const ctx = document.getElementById(canvasId)?.getContext('2d');
+                if (ctx) {
+                    if (xpChartInstances[canvasId]) {
+                        xpChartInstances[canvasId].destroy();
+                    }
+                    xpChartInstances[canvasId] = new Chart(ctx, config);
+                } else {
+                    console.error(`Canvas element with ID '${canvasId}' not found for XP.`);
+                }
+            }
+
+            function updateXpCharts(iterationId = document.getElementById('xpIterationSelect').value) {
+                const data = xpIterationData[iterationId];
+                if (!data) return;
+
+                // Test Coverage Chart
+                createXpChart('xpTestCoverageChart', {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Covered', 'Not Covered'],
+                        datasets: [{
+                            data: [data.testCoverage, 100 - data.testCoverage],
+                            backgroundColor: ['#4CAF50', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Test Coverage (%)' } } }
+                });
+
+                // Build Success Rate Chart
+                createXpChart('xpBuildSuccessRateChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Success Rate'],
+                        datasets: [{
+                            label: '%',
+                            data: [data.buildSuccessRate],
+                            backgroundColor: '#2196F3'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Build Success Rate (%)' } }, scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+
+                // Refactoring Progress Chart
+                createXpChart('xpRefactoringProgressChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.refactoringProgress.labels,
+                        datasets: [{
+                            label: 'Hours Spent',
+                            data: data.refactoringProgress.hours,
+                            borderColor: '#FFC107',
+                            fill: false
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Refactoring Progress (Hours)' } } }
+                });
+
+                // Stories Completed Chart
+                createXpChart('xpStoriesCompletedChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.storiesCompleted.labels,
+                        datasets: [{
+                            label: 'Stories Completed',
+                            data: data.storiesCompleted.count,
+                            backgroundColor: '#4ECDC4'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Stories Completed' } } }
+                });
+
+                // Pair Programming Hours Chart
+                createXpChart('xpPairProgrammingHoursChart', {
+                    type: 'bar',
+                    data: {
+                        labels: data.pairProgrammingHours.labels,
+                        datasets: [{
+                            label: 'Hours',
+                            data: data.pairProgrammingHours.hours,
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Pair Programming Hours' } } }
+                });
+
+                // Customer Feedback Sentiment
+                createXpChart('xpCustomerFeedbackChart', {
+                    type: 'pie',
+                    data: {
+                        labels: ['Positive', 'Neutral', 'Negative'],
+                        datasets: [{
+                            data: [data.customerFeedback.positive, data.customerFeedback.neutral, data.customerFeedback.negative],
+                            backgroundColor: ['#4CAF50', '#FFC107', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Customer Feedback Sentiment' } } }
+                });
+
+                // Code Quality Score
+                createXpChart('xpCodeQualityChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Code Quality'],
+                        datasets: [{
+                            label: 'Score (0-100)',
+                            data: [data.codeQualityScore],
+                            backgroundColor: '#673AB7'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Code Quality Score' } }, scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+
+                // Deployment Frequency
+                createXpChart('xpDeploymentFrequencyChart', {
+                    type: 'line',
+                    data: {
+                        labels: data.deploymentFrequency.labels,
+                        datasets: [{
+                            label: 'Deployments',
+                            data: data.deploymentFrequency.count,
+                            borderColor: '#FF5722',
+                            fill: false
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Deployment Frequency' } } }
+                });
+
+                // Defect Escape Rate
+                createXpChart('xpDefectEscapeRateChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Defect Escape Rate'],
+                        datasets: [{
+                            label: '%',
+                            data: [data.defectEscapeRate],
+                            backgroundColor: '#DC3545'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Defect Escape Rate (%)' } }, scales: { y: { beginAtZero: true, max: 1 } } }
+                });
+
+                // Technical Debt
+                createXpChart('xpTechnicalDebtChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Technical Debt'],
+                        datasets: [{
+                            label: 'Estimated Hours',
+                            data: [data.technicalDebt],
+                            backgroundColor: '#795548'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Technical Debt (Estimated Hours)' } } }
+                });
+
+                // Iteration Velocity
+                createXpChart('xpIterationVelocityChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Velocity'],
+                        datasets: [{
+                            label: 'Story Points',
+                            data: [data.iterationVelocity],
+                            backgroundColor: '#00BCD4'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Iteration Velocity' } } }
+                });
+
+                // Bus Factor
+                createXpChart('xpBusFactorChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Bus Factor'],
+                        datasets: [{
+                            label: 'Critical Members',
+                            data: [data.busFactor],
+                            backgroundColor: '#9E9E9E'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Bus Factor' } }, scales: { y: { beginAtZero: true } } }
+                });
+
+                // Unit Tests Passed
+                createXpChart('xpUnitTestsPassedChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Unit Tests Passed (%)'],
+                        datasets: [{
+                            label: '%',
+                            data: [data.unitTestsPassed],
+                            backgroundColor: '#4CAF50'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Unit Tests Passed (%)' } }, scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+
+                // Acceptance Tests Passed
+                createXpChart('xpAcceptanceTestsPassedChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Acceptance Tests Passed (%)'],
+                        datasets: [{
+                            label: '%',
+                            data: [data.acceptanceTestsPassed],
+                            backgroundColor: '#2196F3'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Acceptance Tests Passed (%)' } }, scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+
+                // Daily Standup Participation
+                createXpChart('xpDailyStandupParticipationChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Participation (%)'],
+                        datasets: [{
+                            label: '%',
+                            data: [data.dailyStandupParticipation],
+                            backgroundColor: '#FFC107'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Daily Standup Participation (%)' } }, scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+
+                // Retrospective Action Items Completion
+                createXpChart('xpRetrospectiveActionItemsChart', {
+                    type: 'bar',
+                    data: {
+                        labels: ['Completed', 'Total'],
+                        datasets: [{
+                            label: 'Count',
+                            data: [data.retrospectiveActionItems.completed, data.retrospectiveActionItems.total],
+                            backgroundColor: ['#4CAF50', '#F44336']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Retrospective Action Items Completion' } }, scales: { y: { beginAtZero: true } } }
+                });
+
+                // Continuous Integration Status
+                const ciStatusIndicator = document.getElementById('xpContinuousIntegrationStatus');
+                ciStatusIndicator.textContent = `CI Status: ${data.ciStatus}`;
+                ciStatusIndicator.className = 'health-indicator'; // Reset classes
+                if (data.ciStatus === 'Green') {
+                    ciStatusIndicator.classList.add('health-green');
+                } else if (data.ciStatus === 'Yellow') {
+                    ciStatusIndicator.classList.add('health-yellow');
+                } else if (data.ciStatus === 'Red') {
+                    ciStatusIndicator.classList.add('health-red');
+                }
+            }
+
+            function downloadXpCharts() {
+                const chartList = [
+                    { canvas: document.getElementById('xpTestCoverageChart'), name: 'testCoverage' },
+                    { canvas: document.getElementById('xpBuildSuccessRateChart'), name: 'buildSuccessRate' },
+                    { canvas: document.getElementById('xpRefactoringProgressChart'), name: 'refactoringProgress' },
+                    { canvas: document.getElementById('xpStoriesCompletedChart'), name: 'storiesCompleted' },
+                    { canvas: document.getElementById('xpPairProgrammingHoursChart'), name: 'pairProgrammingHours' },
+                    { canvas: document.getElementById('xpCustomerFeedbackChart'), name: 'customerFeedback' },
+                    { canvas: document.getElementById('xpCodeQualityChart'), name: 'codeQuality' },
+                    { canvas: document.getElementById('xpDeploymentFrequencyChart'), name: 'deploymentFrequency' },
+                    { canvas: document.getElementById('xpDefectEscapeRateChart'), name: 'defectEscapeRate' },
+                    { canvas: document.getElementById('xpTechnicalDebtChart'), name: 'technicalDebt' },
+                    { canvas: document.getElementById('xpIterationVelocityChart'), name: 'iterationVelocity' },
+                    { canvas: document.getElementById('xpBusFactorChart'), name: 'busFactor' },
+                    { canvas: document.getElementById('xpUnitTestsPassedChart'), name: 'unitTestsPassed' },
+                    { canvas: document.getElementById('xpAcceptanceTestsPassedChart'), name: 'acceptanceTestsPassed' },
+                    { canvas: document.getElementById('xpDailyStandupParticipationChart'), name: 'dailyStandupParticipation' },
+                    { canvas: document.getElementById('xpRetrospectiveActionItemsChart'), name: 'retrospectiveActionItems' }
+                ];
+                chartList.forEach(chart => {
+                    const url = chart.canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `xp_dashboard_${chart.name}.png`;
+                    link.click();
+                });
+            }
+        </script>
+    </div>
+
+    <script>
+        // Global function to manage dashboard visibility and chart rendering
+        function showDashboard(dashboardId) {
+            const dashboards = document.querySelectorAll('.dashboard-content');
+            dashboards.forEach(dashboard => {
+                dashboard.classList.remove('active');
+            });
+            document.getElementById(dashboardId).classList.add('active');
+
+            // Re-render charts when a dashboard becomes visible
+            if (dashboardId === 'waterfallDashboard') {
+                updateWaterfallCharts();
+            } else if (dashboardId === 'agileDashboard') {
+                updateAgileCharts();
+            } else if (dashboardId === 'itSupportDashboard') {
+                initializeItSupportCharts();
+            } else if (dashboardId === 'xpDashboard') {
+                updateXpCharts();
+            }
+        }
+
+        // Show the Waterfall Dashboard by default on load
+        document.addEventListener('DOMContentLoaded', () => {
+            showDashboard('waterfallDashboard');
+        });
+    </script>
+</body>
+</html>

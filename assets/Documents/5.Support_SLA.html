@@ -1,0 +1,419 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support SLA</title>
+  <style>
+    body {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #e6f0fa, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: #1e3a8a;
+    }
+    .slide {
+      background: linear-gradient(150deg, #ffffff, #dbeafe);
+      width: 90%;
+      max-width: 900px;
+      height: 500px;
+      margin: 25px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(30, 58, 138, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 2px solid #3b82f6;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .slide:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(30, 58, 138, 0.2);
+    }
+    h1 {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      color: #1e40af;
+      font-size: 2.7em;
+      text-align: center;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+    }
+    h2 {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      color: #3b82f6;
+      font-size: 1.9em;
+      border-bottom: 2px solid #60a5fa;
+      padding-bottom: 10px;
+      margin: 20px 0;
+    }
+    h3 {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      color: #1e40af;
+      font-size: 1.4em;
+      margin: 18px 0;
+    }
+    p {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      line-height: 1.7;
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    ul {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      list-style-type: none;
+      margin: 0 0 10px 0;
+      padding-left: 22px;
+      line-height: 1.5;
+      font-size: 0.9em;
+    }
+    ul li {
+      position: relative;
+      margin: 5px 0;
+    }
+    ul li:before {
+      content: '●';
+      color: #3b82f6;
+      position: absolute;
+      left: -22px;
+      font-size: 1.2em;
+    }
+    .list-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .list-column {
+      width: 45%;
+      padding-right: 10px;
+    }
+    table {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border: 1px solid #93c5fd;
+    }
+    th {
+      background: linear-gradient(45deg, #1e40af, #3b82f6);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #f0f7ff;
+    }
+    tr:hover {
+      background-color: #bfdbfe;
+    }
+    .footer {
+      font-family: 'Poppins', 'Arial', sans-serif;
+      font-size: 0.9em;
+      color: #64748b;
+      text-align: center;
+      padding: 15px 0;
+      border-top: 1px solid #93c5fd;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(150deg, #ffffff, #dbeafe);
+    }
+    .content {
+      flex: 1;
+      width: 100%;
+    }
+    .navigation {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      gap: 12px;
+    }
+    .navigation button {
+      padding: 12px 28px;
+      background: linear-gradient(45deg, #1e40af, #3b82f6);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .navigation button:hover {
+      background: linear-gradient(45deg, #1e3a8a, #2563eb);
+      transform: scale(1.05);
+    }
+    a {
+      color: #3b82f6;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: #1e40af;
+      text-decoration: underline;
+    }
+    .highlight {
+      background-color: #bfdbfe;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: inline;
+      color: #1e3a8a;
+    }
+  </style>
+</head>
+<body>
+  <!-- Slide 1 -->
+  <div class="slide">
+    <div class="content">
+      <h1>IT Support Service Level Agreement (SLA)</h1>
+      <h2>One-Year Support Services Overview</h2>
+      <p><strong>Prepared for:</strong> <span class="highlight">Client</span></p>
+      <p><strong>Date:</strong> <span class="highlight">May 30, 2025</span></p>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Scope of Support</h2>
+      <ul>
+        <li>1-year Salesforce support service</li>
+        <li>Covers Level 1 (L1), Level 2 (L2), and Level 3 (L3) tiers</li>
+        <li>Support services include:</li>
+        <ul>
+          <li>Helpdesk tickets</li>
+          <li>Basic configuration</li>
+          <li>Advanced development</li>
+          <li>Escalation support</li>
+        </ul>
+      </ul>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 3 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Support Levels & Responsibilities</h2>
+      <ul>
+        <li><strong>Level 1 (L1):</strong> Basic troubleshooting, password resets, ticket triage, documentation-based solutions</li>
+        <li><strong>Level 2 (L2):</strong> Object/field changes, email templates, reports, validations, workflows</li>
+        <li><strong>Level 3 (L3):</strong> Complex bug fixes, Apex code changes, 3rd-party app integrations, triggers</li>
+      </ul>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 4 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Support Activities</h2>
+      <div class="list-container">
+        <ul class="list-column">
+          <li><strong>Technical Tasks</strong></li>
+          <li>Password Reset</li>
+          <li>Issue Troubleshooting</li>
+          <li>Apply Documented Solutions</li>
+          <li>Objects & Field Creation</li>
+          <li>Roles & Profiles Changes</li>
+          <li>Record Sharing</li>
+        </ul>
+        <ul class="list-column">
+          <li><strong>Administrative Tasks</strong></li>
+          <li>Org Structure Changes</li>
+          <li>Email Template Creation</li>
+          <li>Workflow Creation</li>
+          <li>Validation Rules</li>
+          <li>Approval Processes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 5 -->
+  <div class="slide">
+    <div class="content">
+      <h2>SLA Matrix & Prioritization</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Response Time</th>
+            <th>Resolution Time</th>
+            <th>Examples</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>P1 - Critical</td>
+            <td>15 min</td>
+            <td>2-8 hours</td>
+            <td>System down, major functions broken</td>
+          </tr>
+          <tr>
+            <td>P2 - High</td>
+            <td>30 min</td>
+            <td>1 business day</td>
+            <td>Significant impact, workarounds available</td>
+          </tr>
+          <tr>
+            <td>P3 - Medium</td>
+            <td>45 min</td>
+            <td>1-2 business days</td>
+            <td>Standard issues, minor impact</td>
+          </tr>
+          <tr>
+            <td>P4 - Low</td>
+            <td>1 hour</td>
+            <td>3-5 business days</td>
+            <td>Minor issues, reports</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 6 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Support Hours</h2>
+      <h3>Support Availability:</h3>
+      <ul>
+        <li>Monday to Friday</li>
+        <li>9 AM – 6 PM IST</li>
+        <li>Excludes public holidays</li>
+      </ul>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 7 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Escalation Process</h2>
+      <ul>
+        <li>L1 to L2 after 4 hours (if unresolved)</li>
+        <li>L2 to L3 after 8 hours (if unresolved)</li>
+        <li>Notify Project Manager on breach of P1/P2 SLA</li>
+      </ul>
+      <h3>Communication Channels</h3>
+      <ul>
+        <li><strong>Email Support:</strong> <a href="mailto:support@clientdomain.com">support@clientdomain.com</a></li>
+        <li><strong>Ticketing System:</strong> Jira Service Desk (preferred)</li>
+        <li><strong>Escalation Email:</strong> <a href="mailto:escalation@clientdomain.com">escalation@clientdomain.com</a></li>
+      </ul>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 8 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Reporting & Reviews</h2>
+      <ul>
+        <li>Monthly SLA reports</li>
+        <li>Weekly ticket status updates</li>
+        <li>Quarterly review meetings</li>
+      </ul>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Slide 9 -->
+  <div class="slide">
+    <div class="content">
+      <h2>Thank You</h2>
+      <p>For any queries, contact us at <a href="mailto:support@clientdomain.com">support@clientdomain.com</a></p>
+    </div>
+    <div class="footer">Support SLA | Client | May 2025</div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="navigation">
+    <button onclick="prevSlide()">Previous</button>
+    <button onclick="nextSlide()">Next</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.style.display = i === index ? 'block' : 'none';
+      });
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        showSlide(currentSlide);
+      }
+    }
+
+    // Initialize: Show first slide
+    showSlide(currentSlide);
+  </script>
+</body>
+</html>

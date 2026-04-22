@@ -1,0 +1,16 @@
+"TITLE	Salesforce Sales Cloud Implementation Plan
+PROJECT MANAGER	DEVENDRAPPA",,,"COMPANY NAME: 	Galssco Lab
+PROJECT START DATE: 	8/5/2024",,,,,,,,,
+WBS Number,Task Title,Task Owner,Start Date,Due Date,Duration,PCT of Task Complete,Status,Week 1,Week 2,Week 3,Week 4,Week 5
+1,Project Initiation,Project Manager,01-Apr-2025,07-Apr-2025,7,100%,Done,███,,,,
+1.1,Requirement Gathering,Business Analyst,02-Apr-2025,10-Apr-2025,9,80%,Done,███,███,,,
+1.2,Stakeholder Alignment,PMO,03-Apr-2025,08-Apr-2025,6,70%,In-progress,███,███,,,
+2,Planning & Design,Solution Architect,08-Apr-2025,17-Apr-2025,10,50%,In-progress,,███,███,,
+2.1,System Architecture,Solution Architect,09-Apr-2025,13-Apr-2025,5,30%,In-progress,,███,,,
+2.2,Data Migration Plan,Data Analyst,10-Apr-2025,15-Apr-2025,6,20%,Done,,███,███,,
+3,Development & Customization,Salesforce Developer,18-Apr-2025,10-May-2025,23,0%,Blocked,,,███,███,███
+3.1,Configure Salesforce Objects,Salesforce Admin,19-Apr-2025,25-Apr-2025,7,0%,Not Started,,,███,,
+3.2,Custom Development,Salesforce Developer,26-Apr-2025,06-May-2025,11,0%,In-progress,,,,███,
+4,Testing & Deployment,QA Team,11-May-2025,20-May-2025,10,0%,Blocked,,,,,███
+4.1,UAT Testing,QA Team,12-May-2025,15-May-2025,4,0%,Done,,,,,███
+4.2,Final Go-Live,IT Team,18-May-2025,20-May-2025,3,0%,In-progress,,,,,███

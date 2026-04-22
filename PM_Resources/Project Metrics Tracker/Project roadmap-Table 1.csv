@@ -1,0 +1,19 @@
+Salesforce Sales Cloud implementation project roadmap,,,,
+Phase,Milestone,Activity,Description,Duration
+Initiation and Planning,Project Charter Approved,Project Kickoff,"Define project objectives, identify stakeholders, establish governance, develop project charter.",2-4 weeks
+,,Requirements Gathering,"Conduct interviews/workshops, document business requirements and user stories, prioritize requirements.",
+,,Initial Setup,"Set up Salesforce environments, configure basic settings.",
+Design,Solution Design Approved,Solution Design,"Design system architecture, data model, integrations, and security model.",4-6 weeks
+,,Prototyping,Create and validate prototypes with stakeholders.,
+Build,Configuration Complete,Configuration,"Configure Sales Cloud features, set up workflows and automation, develop custom objects/fields.",8-12 weeks
+,,Data Migration Planning,"Define data migration strategy, clean and prepare data.",
+,,Integration Development,"Develop integrations with external systems, configure APIs.",
+Testing,,Unit Testing,"Test individual components and configurations, fix defects.",4-6 weeks
+,,System Testing,"Test complete system in integrated environment, perform end-to-end testing.",
+,UAT Sign-Off,User Acceptance Testing (UAT),"Conduct UAT with key users, gather feedback, make adjustments.",
+Deployment,,Training,"Develop training materials, conduct training sessions for end-users.",2-3 weeks
+,,Data Migration,"Execute data migration to production, verify data integrity.",
+,Go-Live Approved,Go-Live Preparation,"Finalize deployment plan, conduct go-live readiness assessment.",
+Go-Live and Support,,Go-Live,"Deploy solution to production, monitor system, provide immediate support.",2-4 weeks
+,,Hypercare and Support,"Offer dedicated post-go-live support, resolve issues, optimize performance.",
+,Project Closure,Transition to Maintenance,"Transition support to long-term team, conduct post-implementation review.",

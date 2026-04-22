@@ -1,0 +1,651 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Waterfall Project Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .health-indicator {
+            text-align: center;
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+        }
+        .health-green { background-color: #28A745; }
+        .health-yellow { background-color: #FFC107; }
+        .health-red { background-color: #DC3545; }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        select, input[type="file"] {
+            padding: 10px;
+            margin: 0 10px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive Waterfall Project Dashboard</h1>
+    <div class="controls">
+        <label for="phaseSelect">Select Phase: </label>
+        <select id="phaseSelect" onchange="updateCharts()">
+            <option value="1">Requirements</option>
+            <option value="2">Design</option>
+            <option value="3">Implementation</option>
+            <option value="4">Testing</option>
+            <option value="5">Deployment</option>
+        </select>
+        <label for="fileInput">Upload Data File: </label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(event)">
+        <button onclick="downloadCharts()">Download Charts as PNG</button>
+    </div>
+    <div class="dashboard">
+        <div class="chart-container">
+            <h2>Phase Progress</h2>
+            <canvas id="phaseProgressChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Milestone Status</h2>
+            <canvas id="milestoneStatusChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Budget Report</h2>
+            <canvas id="budgetReportChart"></canvas>
+            <table id="budgetReportTable">
+                <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Task Status</h2>
+            <canvas id="taskStatusChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Risk Distribution</h2>
+            <canvas id="riskDistributionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Resource Allocation</h2>
+            <canvas id="resourceAllocationChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Phase Timeline</h2>
+            <canvas id="phaseTimelineChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Cost Variance</h2>
+            <canvas id="costVarianceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Schedule Variance</h2>
+            <canvas id="scheduleVarianceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Time Tracking Report</h2>
+            <canvas id="timeTrackingChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Team Workload</h2>
+            <canvas id="teamWorkloadChart"></canvas>
+            <table id="teamWorkloadTable">
+                <thead><tr><th>Member</th><th>Hours Logged</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-container">
+            <h2>Issue Resolution</h2>
+            <canvas id="issueResolutionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Project Health</h2>
+            <div id="healthIndicator" class="health-indicator"></div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell !== null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) => row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length);
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        // Mock data for Waterfall phases
+        const phaseData = {
+            1: {
+                progress: { tasks: ['Task 1', 'Task 2', 'Task 3', 'Task 4'], completed: [100, 80, 60, 20] },
+                milestones: { completed: 3, inProgress: 1, notStarted: 1 },
+                budget: { planned: 100000, spent: 80000, remaining: 20000 },
+                tasks: { todo: 5, inProgress: 3, done: 12 },
+                risks: { low: 8, medium: 4, high: 2 },
+                resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [40, 35, 45, 30] },
+                timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 50, 0, 0, 0] },
+                costVariance: { planned: 100000, actual: 80000 },
+                scheduleVariance: { plannedDays: 30, actualDays: 25 },
+                timeTracking: { estimated: 200, logged: 180 },
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [40, 35, 45, 30] },
+                issues: { reported: 10, resolved: 8 },
+                health: 'Green'
+            },
+            2: {
+                progress: { tasks: ['Task 1', 'Task 2', 'Task 3', 'Task 4'], completed: [90, 70, 50, 10] },
+                milestones: { completed: 2, inProgress: 2, notStarted: 1 },
+                budget: { planned: 150000, spent: 130000, remaining: 20000 },
+                tasks: { todo: 4, inProgress: 5, done: 15 },
+                risks: { low: 6, medium: 5, high: 3 },
+                resources: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [45, 40, 50, 35] },
+                timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [100, 80, 20, 0, 0] },
+                costVariance: { planned: 150000, actual: 130000 },
+                scheduleVariance: { plannedDays: 40, actualDays: 45 },
+                timeTracking: { estimated: 250, logged: 220 },
+                workload: { members: ['Alice', 'Bob', 'Charlie', 'Dana'], hours: [45, 40, 50, 35] },
+                issues: { reported: 12, resolved: 9 },
+                health: 'Yellow'
+            }
+        };
+
+        // Store processed file data
+        let fileBasedData = {};
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const filename = file.name;
+            const reader = new FileReader();
+            
+            gk_isXlsx = filename.endsWith('.xlsx') || filename.endsWith('.xls');
+            gk_xlsxFileLookup[filename] = true;
+
+            reader.onload = function(e) {
+                gk_fileData[filename] = gk_isXlsx ? e.target.result.split(',')[1] : e.target.result;
+                const csvData = loadFileData(filename);
+                if (csvData) {
+                    processCsvData(csvData, filename);
+                    updateCharts();
+                } else {
+                    alert('Error processing file. Please check the format and try again.');
+                }
+            };
+            
+            if (gk_isXlsx) {
+                reader.readAsDataURL(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+
+        // Process CSV data to match phaseData structure
+        function processCsvData(csv, filename) {
+            const lines = csv.split('\n').map(line => line.split(','));
+            const headers = lines[0];
+            const data = lines.slice(1).filter(row => row.some(filledCell));
+
+            fileBasedData = {};
+            const phaseIndex = headers.indexOf('Phase');
+            const taskIndex = headers.indexOf('Task');
+            const completionIndex = headers.indexOf('Completion');
+            const statusIndex = headers.indexOf('Status');
+            const memberIndex = headers.indexOf('Member');
+            const hoursIndex = headers.indexOf('Hours');
+            const riskIndex = headers.indexOf('Risk');
+            const budgetIndex = headers.indexOf('Budget');
+            const spentIndex = headers.indexOf('Spent');
+
+            data.forEach(row => {
+                const phase = row[phaseIndex] || '1';
+                if (!fileBasedData[phase]) {
+                    fileBasedData[phase] = {
+                        progress: { tasks: [], completed: [] },
+                        milestones: { completed: 0, inProgress: 0, notStarted: 0 },
+                        budget: { planned: 0, spent: 0, remaining: 0 },
+                        tasks: { todo: 0, inProgress: 0, done: 0 },
+                        risks: { low: 0, medium: 0, high: 0 },
+                        resources: { members: [], hours: [] },
+                        timeline: { phases: ['Requirements', 'Design', 'Implementation', 'Testing', 'Deployment'], progress: [0, 0, 0, 0, 0] },
+                        costVariance: { planned: 0, actual: 0 },
+                        scheduleVariance: { plannedDays: 0, actualDays: 0 },
+                        timeTracking: { estimated: 0, logged: 0 },
+                        workload: { members: [], hours: [] },
+                        issues: { reported: 0, resolved: 0 },
+                        health: 'Green'
+                    };
+                }
+
+                const task = row[taskIndex] || 'Task ' + (fileBasedData[phase].progress.tasks.length + 1);
+                const completion = parseFloat(row[completionIndex]) || 0;
+                if (!fileBasedData[phase].progress.tasks.includes(task)) {
+                    fileBasedData[phase].progress.tasks.push(task);
+                    fileBasedData[phase].progress.completed.push(completion);
+                }
+
+                const status = row[statusIndex] || 'To Do';
+                if (status.toLowerCase().includes('todo')) fileBasedData[phase].tasks.todo += 1;
+                else if (status.toLowerCase().includes('progress')) fileBasedData[phase].tasks.inProgress += 1;
+                else if (status.toLowerCase().includes('done')) fileBasedData[phase].tasks.done += 1;
+
+                const risk = row[riskIndex] || 'Medium';
+                if (risk.toLowerCase().includes('low')) fileBasedData[phase].risks.low += 1;
+                else if (risk.toLowerCase().includes('high')) fileBasedData[phase].risks.high += 1;
+                else fileBasedData[phase].risks.medium += 1;
+
+                const member = row[memberIndex] || 'Unknown';
+                const hours = parseFloat(row[hoursIndex]) || 0;
+                if (!fileBasedData[phase].resources.members.includes(member)) {
+                    fileBasedData[phase].resources.members.push(member);
+                    fileBasedData[phase].resources.hours.push(hours);
+                    fileBasedData[phase].workload.members.push(member);
+                    fileBasedData[phase].workload.hours.push(hours);
+                }
+
+                const budget = parseFloat(row[budgetIndex]) || 0;
+                const spent = parseFloat(row[spentIndex]) || 0;
+                fileBasedData[phase].budget.planned += budget;
+                fileBasedData[phase].budget.spent += spent;
+                fileBasedData[phase].budget.remaining = fileBasedData[phase].budget.planned - fileBasedData[phase].budget.spent;
+                fileBasedData[phase].costVariance.planned += budget;
+                fileBasedData[phase].costVariance.actual += spent;
+            });
+
+            Object.keys(fileBasedData).forEach(phase => {
+                fileBasedData[phase].timeline.progress[parseInt(phase) - 1] = fileBasedData[phase].progress.completed.reduce((a, b) => a + b, 0) / fileBasedData[phase].progress.tasks.length || 0;
+                fileBasedData[phase].milestones.completed = fileBasedData[phase].tasks.done;
+                fileBasedData[phase].milestones.inProgress = fileBasedData[phase].tasks.inProgress;
+                fileBasedData[phase].milestones.notStarted = fileBasedData[phase].tasks.todo;
+            });
+        }
+
+        // Chart instances
+        let charts = {};
+
+        // Initialize charts
+        function initializeCharts(phaseId = '1') {
+            const data = fileBasedData[phaseId] || phaseData[phaseId] || phaseData['1'];
+
+            // 1. Phase Progress
+            if (charts.phaseProgressChart) charts.phaseProgressChart.destroy();
+            charts.phaseProgressChart = new Chart(document.getElementById('phaseProgressChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.progress.tasks,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: data.progress.completed,
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Completion (%)' } },
+                        x: { title: { display: true, text: 'Tasks' } }
+                    }
+                }
+            });
+
+            // 2. Milestone Status
+            if (charts.milestoneStatusChart) charts.milestoneStatusChart.destroy();
+            charts.milestoneStatusChart = new Chart(document.getElementById('milestoneStatusChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Not Started'],
+                    datasets: [{
+                        data: [data.milestones.completed, data.milestones.inProgress, data.milestones.notStarted],
+                        backgroundColor: ['#28A745', '#007BFF', '#FFCC00']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 3. Budget Report
+            if (charts.budgetReportChart) charts.budgetReportChart.destroy();
+            charts.budgetReportChart = new Chart(document.getElementById('budgetReportChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Planned', 'Spent', 'Remaining'],
+                    datasets: [{
+                        label: 'Budget ($)',
+                        data: [data.budget.planned, data.budget.spent, data.budget.remaining],
+                        backgroundColor: ['#007BFF', '#28A745', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Amount ($)' } }
+                    }
+                }
+            });
+            const budgetTable = document.getElementById('budgetReportTable').getElementsByTagName('tbody')[0];
+            budgetTable.innerHTML = `
+                <tr><td>Planned</td><td>$${data.budget.planned}</td></tr>
+                <tr><td>Spent</td><td>$${data.budget.spent}</td></tr>
+                <tr><td>Remaining</td><td>$${data.budget.remaining}</td></tr>
+            `;
+
+            // 4. Task Status
+            if (charts.taskStatusChart) charts.taskStatusChart.destroy();
+            charts.taskStatusChart = new Chart(document.getElementById('taskStatusChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['To Do', 'In Progress', 'Done'],
+                    datasets: [{
+                        data: [data.tasks.todo, data.tasks.inProgress, data.tasks.done],
+                        backgroundColor: ['#FFCC00', '#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 5. Risk Distribution
+            if (charts.riskDistributionChart) charts.riskDistributionChart.destroy();
+            charts.riskDistributionChart = new Chart(document.getElementById('riskDistributionChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Low', 'Medium', 'High'],
+                    datasets: [{
+                        data: [data.risks.low, data.risks.medium, data.risks.high],
+                        backgroundColor: ['#28A745', '#FFC107', '#FF5733']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 6. Resource Allocation
+            if (charts.resourceAllocationChart) charts.resourceAllocationChart.destroy();
+            charts.resourceAllocationChart = new Chart(document.getElementById('resourceAllocationChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.resources.members,
+                    datasets: [{
+                        label: 'Hours Allocated',
+                        data: data.resources.hours,
+                        backgroundColor: '#17A2B8'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                        x: { title: { display: true, text: 'Team Members' } }
+                    }
+                }
+            });
+
+            // 7. Phase Timeline
+            if (charts.phaseTimelineChart) charts.phaseTimelineChart.destroy();
+            charts.phaseTimelineChart = new Chart(document.getElementById('phaseTimelineChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.timeline.phases,
+                    datasets: [{
+                        label: 'Progress (%)',
+                        data: data.timeline.progress,
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Progress (%)' } },
+                        x: { title: { display: true, text: 'Phases' } }
+                    }
+                }
+            });
+
+            // 8. Cost Variance
+            if (charts.costVarianceChart) charts.costVarianceChart.destroy();
+            charts.costVarianceChart = new Chart(document.getElementById('costVarianceChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Planned', 'Actual'],
+                    datasets: [{
+                        label: 'Cost ($)',
+                        data: [data.costVariance.planned, data.costVariance.actual],
+                        backgroundColor: ['#007BFF', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Cost ($)' } }
+                    }
+                }
+            });
+
+            // 9. Schedule Variance
+            if (charts.scheduleVarianceChart) charts.scheduleVarianceChart.destroy();
+            charts.scheduleVarianceChart = new Chart(document.getElementById('scheduleVarianceChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Planned', 'Actual'],
+                    datasets: [{
+                        label: 'Days',
+                        data: [data.scheduleVariance.plannedDays, data.scheduleVariance.actualDays],
+                        backgroundColor: ['#007BFF', '#FF5733']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Days' } }
+                    }
+                }
+            });
+
+            // 10. Time Tracking Report
+            if (charts.timeTrackingChart) charts.timeTrackingChart.destroy();
+            charts.timeTrackingChart = new Chart(document.getElementById('timeTrackingChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Estimated', 'Logged'],
+                    datasets: [{
+                        label: 'Hours',
+                        data: [data.timeTracking.estimated, data.timeTracking.logged],
+                        backgroundColor: ['#007BFF', '#28A745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } }
+                    }
+                }
+            });
+
+            // 11. Team Workload
+            if (charts.teamWorkloadChart) charts.teamWorkloadChart.destroy();
+            charts.teamWorkloadChart = new Chart(document.getElementById('teamWorkloadChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.workload.members,
+                    datasets: [{
+                        label: 'Hours Logged',
+                        data: data.workload.hours,
+                        backgroundColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } },
+                        x: { title: { display: true, text: 'Team Members' } }
+                    }
+                }
+            });
+            const workloadTable = document.getElementById('teamWorkloadTable').getElementsByTagName('tbody')[0];
+            workloadTable.innerHTML = data.workload.members.map((m, i) => `<tr><td>${m}</td><td>${data.workload.hours[i]}</td></tr>`).join('');
+
+            // 12. Issue Resolution
+            if (charts.issueResolutionChart) charts.issueResolutionChart.destroy();
+            charts.issueResolutionChart = new Chart(document.getElementById('issueResolutionChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Reported', 'Resolved'],
+                    datasets: [{
+                        label: 'Issues',
+                        data: [data.issues.reported, data.issues.resolved],
+                        backgroundColor: ['#FF5733', '#28A745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Issues' } }
+                    }
+                }
+            });
+
+            // 13. Project Health
+            const healthIndicator = document.getElementById('healthIndicator');
+            healthIndicator.textContent = `Project Health: ${data.health}`;
+            healthIndicator.className = `health-indicator health-${data.health.toLowerCase()}`;
+        }
+
+        // Update charts based on phase selection
+        function updateCharts() {
+            const phaseId = document.getElementById('phaseSelect').value;
+            initializeCharts(phaseId);
+        }
+
+        // Download charts as PNG
+        function downloadCharts() {
+            const chartList = [
+                { canvas: document.getElementById('phaseProgressChart'), name: 'phaseProgress' },
+                { canvas: document.getElementById('milestoneStatusChart'), name: 'milestoneStatus' },
+                { canvas: document.getElementById('budgetReportChart'), name: 'budgetReport' },
+                { canvas: document.getElementById('taskStatusChart'), name: 'taskStatus' },
+                { canvas: document.getElementById('riskDistributionChart'), name: 'riskDistribution' },
+                { canvas: document.getElementById('resourceAllocationChart'), name: 'resourceAllocation' },
+                { canvas: document.getElementById('phaseTimelineChart'), name: 'phaseTimeline' }, // Waterfall phase timeline
+                { canvas: document.getElementById('costVarianceChart'), name: 'costVariance' },
+                { canvas: document.getElementById('scheduleVarianceChart'), name: 'scheduleVariance' },
+                { canvas: document.getElementById('timeTrackingChart'), name: 'timeTracking' },
+                { canvas: document.getElementById('teamWorkloadChart'), name: 'teamWorkload' },
+                { canvas: document.getElementById('issueResolutionChart'), name: 'issueResolution' }
+            ];
+            chartList.forEach(chart => {
+                const url = chart.canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `waterfall_dashboard_${chart.name}.png`;
+                link.click();
+            });
+        }
+
+        // Initialize with Requirements phase
+        initializeCharts('1');
+    </script>
+</body>
+</html>

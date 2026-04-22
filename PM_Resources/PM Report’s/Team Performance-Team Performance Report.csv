@@ -1,0 +1,5 @@
+Metric,Target,Actual,Status,Observations/Actions
+Sprint Velocity (Story Points),50 SP/sprint,45 SP/sprint,🔵 On Track,Slight improvement needed.
+Task Completion Rate,95%,90%,🟡 Needs Attention,Delays due to integration issues.
+Defect Resolution Time,< 24 hrs,20 hrs,🟢 Achieved,Quick issue resolution.
+Collaboration Score (Survey),4.5/5,4.2/5,🟡 Needs Improvement,Improve inter-team communication.
